@@ -409,7 +409,7 @@ namespace WinFormsApp1
             }
             else
             {
-                MessageBox.Show("选择的磁盘：：" + selectedNode.Text, "请选择要操作的磁盘", MessageBoxButtons.OK);
+                //MessageBox.Show("选择的磁盘：：" + selectedNode.Text, "请选择要操作的磁盘", MessageBoxButtons.OK);
             }
 
             //开启一个异步线程进行逻辑处理
@@ -531,7 +531,7 @@ namespace WinFormsApp1
 
         private void treeView1_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
         {
-            MessageBox.Show("选择的磁盘：：" + e.Node.Text, "请选择要操作的磁盘", MessageBoxButtons.OK);
+            //MessageBox.Show("选择的磁盘：：" + e.Node.Text, "请选择要操作的磁盘", MessageBoxButtons.OK);
         }
     }
 }
