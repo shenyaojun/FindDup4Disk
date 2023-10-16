@@ -85,5 +85,27 @@ namespace WinFormsApp1
             }
             return returnStr;
         }
+
+
+        public static string ComputeMD5Hash(string input)
+        {
+            // 将输入字符串转换为字节数组  
+            byte[] data = Encoding.UTF8.GetBytes(input);
+
+            // 创建一个 MD5CryptoServiceProvider 对象  
+            using (System.Security.Cryptography.MD5 md5Hash = System.Security.Cryptography.MD5.Create())
+            {
+                // 计算字节数组的哈希值  
+                byte[] hashValue = md5Hash.ComputeHash(data);
+
+                // 将字节数组转换为十六进制字符串  
+                StringBuilder builder = new StringBuilder();
+                for (int i = 0; i < hashValue.Length; i++)
+                {
+                    builder.Append(hashValue[i].ToString("x2"));
+                }
+                return builder.ToString();
+            }
+        }
     }
 }

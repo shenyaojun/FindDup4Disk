@@ -10,7 +10,7 @@ using System.Security.Cryptography;
 using System.Windows.Forms;
 using System.Management;
 using static System.ComponentModel.Design.ObjectSelectorEditor;
-
+using System.Text;
 
 namespace WinFormsApp1
 {
@@ -386,11 +386,14 @@ namespace WinFormsApp1
 
             connection.Close();
             MessageBox.Show("Done！", "请选择要操作的磁盘", MessageBoxButtons.OK);
+
+            //读取本机硬件信息
+            string sCPUSerialNumber = "";
             try
             {
                 ManagementObjectSearcher searcher =
                     new ManagementObjectSearcher("Select * From Win32_Processor");
-                string sCPUSerialNumber = "";
+                
                 foreach (ManagementObject mo in searcher.Get())
                 {
                     sCPUSerialNumber = mo["ProcessorId"].ToString().Trim();
@@ -406,6 +409,72 @@ namespace WinFormsApp1
             {
             }
 
+            string sBIOSSerialNumber = "";
+            try
+            {
+                ManagementObjectSearcher searcher =
+                    new ManagementObjectSearcher("Select * From Win32_BIOS");
+                
+                foreach (ManagementObject mo in searcher.Get())
+                {
+                    sBIOSSerialNumber = mo.GetPropertyValue("SerialNumber").ToString().Trim();
+                    break;
+                }
+
+                this.label1.Text = sBIOSSerialNumber;
+
+
+
+            }
+            catch (Exception ex)
+            {
+            }
+
+            string sHardDiskSerialNumber = "";
+            try
+            {
+                ManagementObjectSearcher searcher =
+                    new ManagementObjectSearcher("SELECT * FROM Win32_PhysicalMedia");
+                
+                foreach (ManagementObject mo in searcher.Get())
+                {
+                    sHardDiskSerialNumber = mo["SerialNumber"].ToString().Trim(); ;
+                    break;
+                }
+
+                this.label2.Text = sHardDiskSerialNumber;
+
+
+
+            }
+            catch (Exception ex)
+            {
+            }
+
+            string sNetCardMACAddress = "";
+            try
+            {
+                ManagementObjectSearcher searcher =
+                    new ManagementObjectSearcher("SELECT * FROM Win32_NetworkAdapter WHERE ((MACAddress Is Not NULL) AND (Manufacturer <> 'Microsoft'))");
+                
+                foreach (ManagementObject mo in searcher.Get())
+                {
+                    sNetCardMACAddress = mo["MACAddress"].ToString().Trim(); ;
+                    break;
+                }
+
+                this.label1.Text = sNetCardMACAddress;
+
+
+
+            }
+            catch (Exception ex)
+            {
+            }
+
+            //生成本机MD5码：
+            string md5LocalMachine = MD5.ComputeMD5Hash((sCPUSerialNumber + sBIOSSerialNumber + sHardDiskSerialNumber + sNetCardMACAddress).Replace('.','-').Replace(':', '_'));
+            this.label2.Text = md5LocalMachine;
 
 
         }
@@ -461,6 +530,10 @@ namespace WinFormsApp1
 
 
         }
+        
+
+
+
         private static string getMD5ByMD5CryptoService(string path)
         {
             if (!File.Exists(path))
