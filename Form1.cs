@@ -8,6 +8,7 @@ using System.Globalization;
 using System.IO;
 using System.Security.Cryptography;
 using System.Windows.Forms;
+using System.Management;
 using static System.ComponentModel.Design.ObjectSelectorEditor;
 
 
@@ -385,6 +386,26 @@ namespace WinFormsApp1
 
             connection.Close();
             MessageBox.Show("Done！", "请选择要操作的磁盘", MessageBoxButtons.OK);
+            try
+            {
+                ManagementObjectSearcher searcher =
+                    new ManagementObjectSearcher("Select * From Win32_Processor");
+                string sCPUSerialNumber = "";
+                foreach (ManagementObject mo in searcher.Get())
+                {
+                    sCPUSerialNumber = mo["ProcessorId"].ToString().Trim();
+                    break;
+                }
+                //MessageBox.Show("sCPUSerialNumber！" + sCPUSerialNumber, "请选择要操作的磁盘", MessageBoxButtons.OK);
+                this.label2.Text = sCPUSerialNumber;
+                
+                
+                
+            }
+            catch (Exception ex)
+            {
+            }
+
 
 
         }
