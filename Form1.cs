@@ -11,12 +11,16 @@ using System.Windows.Forms;
 using System.Management;
 using static System.ComponentModel.Design.ObjectSelectorEditor;
 using System.Text;
+using System.Data;
 
 namespace WinFormsApp1
 {
     public partial class Form1 : Form
     {
         private bool userSendEndCommand;
+        string[] md5LocalMachine;
+        string dbfilename = "C:\\daba.db";
+        string machineCode;
 
         public Form1()
         {
@@ -27,6 +31,14 @@ namespace WinFormsApp1
 
         private void button1_Click(object sender, EventArgs e)
         {
+            // 获取当前选中节点  
+            TreeNode selectedNode = treeView1.SelectedNode;
+            if (selectedNode == null || string.IsNullOrEmpty(selectedNode.Text))
+            {
+                MessageBox.Show("请选择磁盘！", "请选择要操作的磁盘", MessageBoxButtons.OK);
+                return;
+            }
+
             //开启一个异步线程进行逻辑处理
             new Task(new Action(() =>
             {
@@ -47,13 +59,13 @@ namespace WinFormsApp1
                 int i = 0;
 
                 //String[] dicts = {};
-                DirectoryInfo TheFolder = new DirectoryInfo("L:\\");
+                DirectoryInfo TheFolder = new DirectoryInfo(selectedNode.Text);
                 foreach (DirectoryInfo NextFolder in TheFolder.GetDirectories())
                 {
                     Console.WriteLine(NextFolder.FullName);
                     if (NextFolder.FullName.Contains(".Trashes")) continue;
                     if (NextFolder.FullName.Contains("System Volume")) continue;
-                    dicts.Add("L:\\" + NextFolder.Name);
+                    dicts.Add(selectedNode.Text + NextFolder.Name);
                 }
 
                 foreach (string directory in dicts)
@@ -210,7 +222,127 @@ namespace WinFormsApp1
                 }
             }
 
+            //读取本机机器码
+            md5LocalMachine = GenerateMachineCode();
+            this.label1.Text = md5LocalMachine[0];
+            this.label2.Text = md5LocalMachine[1];
+            this.label1.Text = md5LocalMachine[2];
+            this.label2.Text = md5LocalMachine[3];
 
+            this.label2.Text = md5LocalMachine[4];
+
+            machineCode = md5LocalMachine[4];
+
+            if (File.Exists(dbfilename))
+            {
+                //db文件存在，读入内存
+                string connectionString = "Data Source=:memory:;Version=3;";
+                SQLiteConnection cnnIn = new SQLiteConnection("Data Source=" + dbfilename + ";Version=3;");
+                SQLiteConnection connection = new SQLiteConnection(connectionString);
+
+                connection.Open();
+                cnnIn.Open();
+
+
+
+
+                cnnIn.BackupDatabase(connection, "main", "main", -1, null, -1);
+                cnnIn.Close();
+                string sql = "SELECT * FROM machines where MachineCode = '" + md5LocalMachine[4] + "'"; // 选择你的表中的第一条记录  
+                bool machineCodeExits = true;
+                using (SQLiteCommand command = new SQLiteCommand(sql, connection))
+                {
+                    using (SQLiteDataReader reader = command.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            while (reader.Read())
+                            {
+                                // 读取记录，这里假设你的表有字段A和字段B  
+                                machineCode = reader.GetString(5); // 根据你的字段在表中的位置更换这里的索引  
+                                MessageBox.Show("machine code exits:" + machineCode, "处理", MessageBoxButtons.YesNo);
+                            }
+                        }
+                        else
+                        {
+                            machineCodeExits = false;
+                        }
+                    }
+                }
+                if (!machineCodeExits)
+                {
+                    //生成本机机器码记录
+
+                    sql = "CREATE TABLE IF NOT EXISTS machines (id INTEGER PRIMARY KEY AUTOINCREMENT, CPUSN TEXT, BIOSSN TEXT,HDSN TEXT, NETSN TEXT, MachineCode TEXT)";
+                    SQLiteCommand command = new SQLiteCommand(sql, connection);
+                    command.ExecuteNonQuery();
+
+
+
+
+                    command = new SQLiteCommand(connection);
+                    // 定义 SQL 查询，并指定参数占位符  
+                    sql = "INSERT INTO machines (CPUSN , BIOSSN ,HDSN , NETSN , MachineCode) VALUES (@cpusn , @biossn ,@hdsn , @netsn , @machinecode)";
+                    command.CommandText = sql;
+
+                    // 创建 SQLiteParameter 对象并设置参数值  
+                    SQLiteParameter snParam1 = new SQLiteParameter("@cpusn", md5LocalMachine[0]);
+                    command.Parameters.Add(snParam1);
+                    SQLiteParameter snParam2 = new SQLiteParameter("@biossn", md5LocalMachine[1]);
+                    command.Parameters.Add(snParam2);
+                    SQLiteParameter snParam3 = new SQLiteParameter("@hdsn", md5LocalMachine[2]);
+                    command.Parameters.Add(snParam3);
+                    SQLiteParameter snParam4 = new SQLiteParameter("@netsn", md5LocalMachine[3]);
+                    command.Parameters.Add(snParam4);
+                    SQLiteParameter snParam5 = new SQLiteParameter("@machinecode", md5LocalMachine[4]);
+                    command.Parameters.Add(snParam5);
+
+                    command.ExecuteNonQuery();
+
+
+
+                }
+
+                using (var command = new SQLiteCommand())
+                {
+                    command.Connection = connection;
+                    command.CommandText = "SELECT * FROM machines";
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        var dataset = new DataSet("machines");
+                        var table = new DataTable("machines");
+                        table.Columns.Add("machinecode", typeof(string));
+                        table.Columns.Add("cpusn", typeof(string));
+                        table.Columns.Add("biossn", typeof(string));
+                        table.Columns.Add("hdsn", typeof(string));
+                        table.Columns.Add("netsn", typeof(string));
+                        dataset.Tables.Add(table);
+
+                        while (reader.Read())
+                        {
+                            var row = table.NewRow();
+                            row["machinecode"] = reader.GetString(5);
+                            row["cpusn"] = reader.GetString(1);
+                            row["biossn"] = reader.GetString(2);
+                            row["hdsn"] = reader.GetString(3);
+                            row["netsn"] = reader.GetString(4);
+                            table.Rows.Add(row);
+                        }
+
+                        dataset.AcceptChanges();
+
+                        dataGridView1.DataSource = dataset.Tables[0];  // Assuming the DataGridView control is named dataGridView1  
+                    }
+                }
+
+                connection.Close();
+
+            }
+            else
+            {
+                MessageBox.Show("no db file found", "处理", MessageBoxButtons.YesNo);
+            }
 
 
         }
@@ -344,7 +476,7 @@ namespace WinFormsApp1
 
 
             string connectionString = "Data Source=:memory:;Version=3;";
-            SQLiteConnection cnnIn = new SQLiteConnection("Data Source=C:\\daba.db;Version=3;");
+            SQLiteConnection cnnIn = new SQLiteConnection("Data Source=" + dbfilename + ";Version=3;");
             SQLiteConnection connection = new SQLiteConnection(connectionString);
 
             connection.Open();
@@ -387,13 +519,7 @@ namespace WinFormsApp1
 
 
 
-            string[] md5LocalMachine = GenerateMachineCode();
-            this.label1.Text = md5LocalMachine[0];
-            this.label2.Text = md5LocalMachine[1];
-            this.label1.Text = md5LocalMachine[2];
-            this.label2.Text = md5LocalMachine[3];
 
-            this.label2.Text = md5LocalMachine[4];
 
             command = new SQLiteCommand(connection);
             // 定义 SQL 查询，并指定参数占位符  
@@ -443,7 +569,7 @@ namespace WinFormsApp1
                     break;
                 }
                 //MessageBox.Show("sCPUSerialNumber！" + sCPUSerialNumber, "请选择要操作的磁盘", MessageBoxButtons.OK);
-                
+
 
 
 
@@ -569,7 +695,7 @@ namespace WinFormsApp1
 
 
         }
-        
+
 
 
 
@@ -594,6 +720,7 @@ namespace WinFormsApp1
             if (selectedNode == null || string.IsNullOrEmpty(selectedNode.Text))
             {
                 MessageBox.Show("请选择磁盘！", "请选择要操作的磁盘", MessageBoxButtons.OK);
+                return;
             }
             else
             {
@@ -720,6 +847,32 @@ namespace WinFormsApp1
         private void treeView1_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
         {
             //MessageBox.Show("选择的磁盘：：" + e.Node.Text, "请选择要操作的磁盘", MessageBoxButtons.OK);
+        }
+
+        private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            // 检查是否在同一行的Field1字段中  
+            if (e.RowIndex >= 0 && e.ColumnIndex == 0) // 根据你的需要改变这个索引  
+            {
+                // 获取当前单元格的值  
+                string value = "";
+
+                try
+                {
+                    value = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString();
+                }
+                catch (Exception ex)
+                {
+
+                }
+
+                // 检查值是否为"特定值"  
+                if (value == machineCode)
+                {
+                    // 设置单元格颜色为红色  
+                    e.CellStyle.BackColor = Color.Red;
+                }
+            }
         }
     }
 }

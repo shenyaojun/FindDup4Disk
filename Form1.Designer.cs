@@ -38,6 +38,8 @@
             button5 = new Button();
             label2 = new Label();
             treeView1 = new TreeView();
+            dataGridView1 = new DataGridView();
+            ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             SuspendLayout();
             // 
             // button1
@@ -133,11 +135,24 @@
             treeView1.NodeMouseClick += treeView1_NodeMouseClick;
             treeView1.Leave += treeView1_Leave;
             // 
+            // dataGridView1
+            // 
+            dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
+            dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridView1.Location = new Point(90, 107);
+            dataGridView1.Name = "dataGridView1";
+            dataGridView1.RowHeadersWidth = 51;
+            dataGridView1.RowTemplate.Height = 29;
+            dataGridView1.Size = new Size(1032, 248);
+            dataGridView1.TabIndex = 10;
+            dataGridView1.CellFormatting += dataGridView1_CellFormatting;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(9F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1415, 742);
+            Controls.Add(dataGridView1);
             Controls.Add(treeView1);
             Controls.Add(label2);
             Controls.Add(button5);
@@ -151,6 +166,7 @@
             Name = "Form1";
             Text = "Form1";
             Load += Form1_Load;
+            ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -167,5 +183,6 @@
         private Button button5;
         private Label label2;
         private TreeView treeView1;
+        private DataGridView dataGridView1;
     }
 }
