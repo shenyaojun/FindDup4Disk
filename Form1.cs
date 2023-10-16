@@ -342,11 +342,11 @@ namespace WinFormsApp1
 
             records.Sort(((a, b) => a.Md5.CompareTo(b.Md5)));
 
-          
+
             string connectionString = "Data Source=:memory:;Version=3;";
             SQLiteConnection cnnIn = new SQLiteConnection("Data Source=C:\\daba.db;Version=3;");
             SQLiteConnection connection = new SQLiteConnection(connectionString);
-            
+
             connection.Open();
             cnnIn.Open();
 
@@ -380,6 +380,42 @@ namespace WinFormsApp1
                 command.ExecuteNonQuery();
             }
 
+            sql = "CREATE TABLE IF NOT EXISTS machines (id INTEGER PRIMARY KEY AUTOINCREMENT, CPUSN TEXT, BIOSSN TEXT,HDSN TEXT, NETSN TEXT, MachineCode TEXT)";
+            command = new SQLiteCommand(sql, connection);
+            command.ExecuteNonQuery();
+
+
+
+
+            string[] md5LocalMachine = GenerateMachineCode();
+            this.label1.Text = md5LocalMachine[0];
+            this.label2.Text = md5LocalMachine[1];
+            this.label1.Text = md5LocalMachine[2];
+            this.label2.Text = md5LocalMachine[3];
+
+            this.label2.Text = md5LocalMachine[4];
+
+            command = new SQLiteCommand(connection);
+            // 定义 SQL 查询，并指定参数占位符  
+            sql = "INSERT INTO machines (CPUSN , BIOSSN ,HDSN , NETSN , MachineCode) VALUES (@cpusn , @biossn ,@hdsn , @netsn , @machinecode)";
+            command.CommandText = sql;
+
+            // 创建 SQLiteParameter 对象并设置参数值  
+            SQLiteParameter snParam1 = new SQLiteParameter("@cpusn", md5LocalMachine[0]);
+            command.Parameters.Add(snParam1);
+            SQLiteParameter snParam2 = new SQLiteParameter("@biossn", md5LocalMachine[1]);
+            command.Parameters.Add(snParam2);
+            SQLiteParameter snParam3 = new SQLiteParameter("@hdsn", md5LocalMachine[2]);
+            command.Parameters.Add(snParam3);
+            SQLiteParameter snParam4 = new SQLiteParameter("@netsn", md5LocalMachine[3]);
+            command.Parameters.Add(snParam4);
+            SQLiteParameter snParam5 = new SQLiteParameter("@machinecode", md5LocalMachine[4]);
+            command.Parameters.Add(snParam5);
+
+            command.ExecuteNonQuery();
+
+
+
 
             connection.BackupDatabase(cnnIn, "main", "main", -1, null, -1);
             cnnIn.Close();
@@ -387,23 +423,30 @@ namespace WinFormsApp1
             connection.Close();
             MessageBox.Show("Done！", "请选择要操作的磁盘", MessageBoxButtons.OK);
 
+
+        }
+
+        private string[] GenerateMachineCode()
+        {
+            string[] strings = new string[5];
+
             //读取本机硬件信息
             string sCPUSerialNumber = "";
             try
             {
                 ManagementObjectSearcher searcher =
                     new ManagementObjectSearcher("Select * From Win32_Processor");
-                
+
                 foreach (ManagementObject mo in searcher.Get())
                 {
                     sCPUSerialNumber = mo["ProcessorId"].ToString().Trim();
                     break;
                 }
                 //MessageBox.Show("sCPUSerialNumber！" + sCPUSerialNumber, "请选择要操作的磁盘", MessageBoxButtons.OK);
-                this.label2.Text = sCPUSerialNumber;
                 
-                
-                
+
+
+
             }
             catch (Exception ex)
             {
@@ -414,15 +457,12 @@ namespace WinFormsApp1
             {
                 ManagementObjectSearcher searcher =
                     new ManagementObjectSearcher("Select * From Win32_BIOS");
-                
+
                 foreach (ManagementObject mo in searcher.Get())
                 {
                     sBIOSSerialNumber = mo.GetPropertyValue("SerialNumber").ToString().Trim();
                     break;
                 }
-
-                this.label1.Text = sBIOSSerialNumber;
-
 
 
             }
@@ -435,14 +475,13 @@ namespace WinFormsApp1
             {
                 ManagementObjectSearcher searcher =
                     new ManagementObjectSearcher("SELECT * FROM Win32_PhysicalMedia");
-                
+
                 foreach (ManagementObject mo in searcher.Get())
                 {
                     sHardDiskSerialNumber = mo["SerialNumber"].ToString().Trim(); ;
                     break;
                 }
 
-                this.label2.Text = sHardDiskSerialNumber;
 
 
 
@@ -456,14 +495,13 @@ namespace WinFormsApp1
             {
                 ManagementObjectSearcher searcher =
                     new ManagementObjectSearcher("SELECT * FROM Win32_NetworkAdapter WHERE ((MACAddress Is Not NULL) AND (Manufacturer <> 'Microsoft'))");
-                
+
                 foreach (ManagementObject mo in searcher.Get())
                 {
                     sNetCardMACAddress = mo["MACAddress"].ToString().Trim(); ;
                     break;
                 }
 
-                this.label1.Text = sNetCardMACAddress;
 
 
 
@@ -473,10 +511,15 @@ namespace WinFormsApp1
             }
 
             //生成本机MD5码：
-            string md5LocalMachine = MD5.ComputeMD5Hash((sCPUSerialNumber + sBIOSSerialNumber + sHardDiskSerialNumber + sNetCardMACAddress).Replace('.','-').Replace(':', '_'));
-            this.label2.Text = md5LocalMachine;
+            string md5LocalMachine = MD5.ComputeMD5Hash((sCPUSerialNumber + sBIOSSerialNumber + sHardDiskSerialNumber + sNetCardMACAddress).Replace('.', '-').Replace(':', '_'));
 
+            strings[0] = sCPUSerialNumber;
+            strings[1] = sBIOSSerialNumber;
+            strings[2] = sHardDiskSerialNumber;
+            strings[3] = sNetCardMACAddress;
+            strings[4] = md5LocalMachine;
 
+            return strings;
         }
 
         private void button4_Click(object sender, EventArgs e)
@@ -522,10 +565,6 @@ namespace WinFormsApp1
                 MessageBox.Show(md5 + ":::" + md52, "处理", MessageBoxButtons.YesNo);
                 MessageBox.Show(milliseconds + ":::" + milliseconds2, "处理", MessageBoxButtons.YesNo);
             })).Start();
-
-
-
-
 
 
 
