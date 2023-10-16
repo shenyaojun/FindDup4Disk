@@ -1,5 +1,7 @@
 using CsvHelper;
+using Microsoft.VisualBasic;
 using System.ComponentModel;
+using System.Data.SQLite;
 using System.Diagnostics;
 using System.Dynamic;
 using System.Globalization;
@@ -330,6 +332,59 @@ namespace WinFormsApp1
             {
                 MessageBox.Show("选择的磁盘：：" + selectedNode.Text, "请选择要操作的磁盘", MessageBoxButtons.OK);
             }
+
+            var records = new List<dynamic>();
+
+            //读取csv文件，已处理的
+
+            records = ReadCsv(records);
+
+            records.Sort(((a, b) => a.Md5.CompareTo(b.Md5)));
+
+          
+            string connectionString = "Data Source=:memory:;Version=3;";
+            SQLiteConnection cnnIn = new SQLiteConnection("Data Source=C:\\daba.db;Version=3;");
+            SQLiteConnection connection = new SQLiteConnection(connectionString);
+            
+            connection.Open();
+            cnnIn.Open();
+
+
+            string sql = "CREATE TABLE IF NOT EXISTS files (id INTEGER PRIMARY KEY AUTOINCREMENT, Filename TEXT, Md5 TEXT, Length BIGINT)";
+            SQLiteCommand command = new SQLiteCommand(sql, connection);
+            command.ExecuteNonQuery();
+
+            sql = "DELETE FROM files";
+            command = new SQLiteCommand(sql, connection);
+            command.ExecuteNonQuery();
+
+            sql = "DELETE FROM sqlite_sequence WHERE name = 'files'";
+            command = new SQLiteCommand(sql, connection);
+            command.ExecuteNonQuery();
+
+            foreach (var record in records)
+            {
+                command = new SQLiteCommand(connection);
+                // 定义 SQL 查询，并指定参数占位符  
+                sql = "INSERT INTO files (Filename, Md5, Length) VALUES (@filename, @md5, @length)";
+                command.CommandText = sql;
+                // 创建 SQLiteParameter 对象并设置参数值  
+                SQLiteParameter nameParam = new SQLiteParameter("@filename", record.Filename);
+                command.Parameters.Add(nameParam);
+                SQLiteParameter md5Param = new SQLiteParameter("@md5", record.Md5);
+                command.Parameters.Add(md5Param);
+                SQLiteParameter lengthParam = new SQLiteParameter("@length", record.Length);
+                command.Parameters.Add(lengthParam);
+
+                command.ExecuteNonQuery();
+            }
+
+
+            connection.BackupDatabase(cnnIn, "main", "main", -1, null, -1);
+            cnnIn.Close();
+
+            connection.Close();
+            MessageBox.Show("Done！", "请选择要操作的磁盘", MessageBoxButtons.OK);
 
 
         }
