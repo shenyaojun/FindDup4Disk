@@ -12,6 +12,8 @@ using System.Management;
 using static System.ComponentModel.Design.ObjectSelectorEditor;
 using System.Text;
 using System.Data;
+using System.Numerics;
+using FindDup4Disk;
 
 namespace WinFormsApp1
 {
@@ -19,13 +21,16 @@ namespace WinFormsApp1
     {
         private bool userSendEndCommand;
         string[] md5LocalMachine;
-        string dbfilename = "C:\\daba.db";
+        public static string dbfilename = "C:\\daba.db";
         string machineCode;
+        const string connectionString = "Data Source=:memory:;Version=3;";
+        static SQLiteConnection connection = new SQLiteConnection(connectionString);
 
         public Form1()
         {
             InitializeComponent();
         }
+
 
 
 
@@ -39,128 +44,19 @@ namespace WinFormsApp1
                 return;
             }
 
-            //开启一个异步线程进行逻辑处理
-            new Task(new Action(() =>
-            {
-                userSendEndCommand = false;
-                this.label1.Text = "start.....";
+            MessageBox.Show("磁盘Md5扫描需要比较长的时间，请耐心等待！", "提醒", MessageBoxButtons.OK);
+            // 创建新实例  
+            Form3 form3 = new Form3(connection, machineCode, selectedNode.Text);
 
-                var records = new List<dynamic>();
+            // 设置新窗口的属性为模态窗口  
+            //form3.ModalResult = DialogResult.OK;
 
-                //读取csv文件，已处理的
+            // 显示新表单  
+            //form3.Show();
+            form3.ShowDialog();
 
-                records = ReadCsv(records);
-
-                records.Sort(((a, b) => a.Filename.CompareTo(b.Filename)));
-
-                Dictionary<string, string> dict = new Dictionary<string, string> { };
-                Dictionary<string, string> dupDict = new Dictionary<string, string> { };
-                List<string> dicts = new List<string>();
-                int i = 0;
-
-                //String[] dicts = {};
-                DirectoryInfo TheFolder = new DirectoryInfo(selectedNode.Text);
-                foreach (DirectoryInfo NextFolder in TheFolder.GetDirectories())
-                {
-                    Console.WriteLine(NextFolder.FullName);
-                    if (NextFolder.FullName.Contains(".Trashes")) continue;
-                    if (NextFolder.FullName.Contains("System Volume")) continue;
-                    dicts.Add(selectedNode.Text + NextFolder.Name);
-                }
-
-                foreach (string directory in dicts)
-                {
-                    try
-                    {
-                        //MessageBox.Show(directory, "处理", MessageBoxButtons.YesNo);
-                        DirectoryInfo folder = new DirectoryInfo(directory);
-                        foreach (FileInfo file in folder.GetFiles("*.*", SearchOption.AllDirectories))
-
-                        {
-                            //用户点击了停止命令
-                            if (userSendEndCommand)
-                            {
-                                SaveCsv(records);
-                                this.label1.Text = "用户要求暂停";
-                                return;
-                            }
-                            // 处理每个文件
-                            this.label1.Text = file.ToString();
-                            if (file.Length / 1000 / 1000 < 2) continue;
-                            if (file.ToString().EndsWith(".dll")) continue;
-                            if (file.ToString().EndsWith(".exe")) continue;
-                            if (file.ToString().EndsWith(".jar")) continue;
-
-                            if (records.Find(a => (a.Filename.Equals(file.ToString()) || a.Length.Equals(file.Length.ToString()))) != null)
-                            {
-                                //MessageBox.Show("file 已处理: " + file.ToString(), "处理", MessageBoxButtons.YesNo);
-                                continue;
-                            }
-
-                            //string md5 = MD5.HashFile(file.ToString(), "md5");
-                            string md5 = getMD5ByMD5CryptoService(file.ToString());
-
-                            if (dict.ContainsValue(md5))
-                            {
-                                if (!dupDict.ContainsKey(md5))
-                                {
-                                    dupDict.Add(md5, file.ToString());
-
-                                }
-                                else
-                                {
-                                    String old = dupDict.GetValueOrDefault(md5) + "";
-                                    dupDict.Remove(md5);
-                                    dupDict.Add(md5, file.ToString() + "; " + old);
-                                }
-
-
-
-                            }
-                            dict.Add(file.ToString(), md5);
-
-                            ListViewItem lvi = new ListViewItem(file.ToString());
-
-
-
-                            lvi.SubItems.Add(md5);
-                            lvi.SubItems.Add(file.Length / 1000 / 1000 + "M");
-
-                            this.listView1.Items.Add(lvi);
-
-                            dynamic record = new ExpandoObject();
-                            record.Filename = file.ToString();
-                            record.Md5 = md5;
-                            record.Length = file.Length;
-                            records.Add(record);
-
-
-                            i++;
-                        }
-
-                        //if (i > 5) return;
-
-                    }
-                    catch { MessageBox.Show("error", "提示", MessageBoxButtons.YesNo); }
-
-
-                }
-
-                SaveCsv(records);
-
-                foreach (KeyValuePair<string, string> item in dupDict)
-                {
-
-                    ListViewItem lvi = new ListViewItem(item.Key);
-
-
-
-                    lvi.SubItems.Add(item.Value);
-
-                    this.listView2.Items.Add(lvi);
-                }
-            })).Start();
         }
+
 
         private static List<dynamic> ReadCsv(List<dynamic> records)
         {
@@ -236,18 +132,11 @@ namespace WinFormsApp1
             if (File.Exists(dbfilename))
             {
                 //db文件存在，读入内存
-                string connectionString = "Data Source=:memory:;Version=3;";
-                SQLiteConnection cnnIn = new SQLiteConnection("Data Source=" + dbfilename + ";Version=3;");
-                SQLiteConnection connection = new SQLiteConnection(connectionString);
 
                 connection.Open();
-                cnnIn.Open();
+                Db2Mem();
 
 
-
-
-                cnnIn.BackupDatabase(connection, "main", "main", -1, null, -1);
-                cnnIn.Close();
                 string sql = "SELECT * FROM machines where MachineCode = '" + md5LocalMachine[4] + "'"; // 选择你的表中的第一条记录  
                 bool machineCodeExits = true;
                 using (SQLiteCommand command = new SQLiteCommand(sql, connection))
@@ -260,7 +149,7 @@ namespace WinFormsApp1
                             {
                                 // 读取记录，这里假设你的表有字段A和字段B  
                                 machineCode = reader.GetString(5); // 根据你的字段在表中的位置更换这里的索引  
-                                MessageBox.Show("machine code exits:" + machineCode, "处理", MessageBoxButtons.YesNo);
+                                //MessageBox.Show("machine code exits:" + machineCode, "处理", MessageBoxButtons.YesNo);
                             }
                         }
                         else
@@ -271,72 +160,13 @@ namespace WinFormsApp1
                 }
                 if (!machineCodeExits)
                 {
-                    //生成本机机器码记录
-
-                    sql = "CREATE TABLE IF NOT EXISTS machines (id INTEGER PRIMARY KEY AUTOINCREMENT, CPUSN TEXT, BIOSSN TEXT,HDSN TEXT, NETSN TEXT, MachineCode TEXT)";
-                    SQLiteCommand command = new SQLiteCommand(sql, connection);
-                    command.ExecuteNonQuery();
-
-
-
-
-                    command = new SQLiteCommand(connection);
-                    // 定义 SQL 查询，并指定参数占位符  
-                    sql = "INSERT INTO machines (CPUSN , BIOSSN ,HDSN , NETSN , MachineCode) VALUES (@cpusn , @biossn ,@hdsn , @netsn , @machinecode)";
-                    command.CommandText = sql;
-
-                    // 创建 SQLiteParameter 对象并设置参数值  
-                    SQLiteParameter snParam1 = new SQLiteParameter("@cpusn", md5LocalMachine[0]);
-                    command.Parameters.Add(snParam1);
-                    SQLiteParameter snParam2 = new SQLiteParameter("@biossn", md5LocalMachine[1]);
-                    command.Parameters.Add(snParam2);
-                    SQLiteParameter snParam3 = new SQLiteParameter("@hdsn", md5LocalMachine[2]);
-                    command.Parameters.Add(snParam3);
-                    SQLiteParameter snParam4 = new SQLiteParameter("@netsn", md5LocalMachine[3]);
-                    command.Parameters.Add(snParam4);
-                    SQLiteParameter snParam5 = new SQLiteParameter("@machinecode", md5LocalMachine[4]);
-                    command.Parameters.Add(snParam5);
-
-                    command.ExecuteNonQuery();
-
-
+                    StoreMachineCode2Db();
 
                 }
 
-                using (var command = new SQLiteCommand())
-                {
-                    command.Connection = connection;
-                    command.CommandText = "SELECT * FROM machines";
+                ShowMachineList();
 
-                    using (var reader = command.ExecuteReader())
-                    {
-                        var dataset = new DataSet("machines");
-                        var table = new DataTable("machines");
-                        table.Columns.Add("machinecode", typeof(string));
-                        table.Columns.Add("cpusn", typeof(string));
-                        table.Columns.Add("biossn", typeof(string));
-                        table.Columns.Add("hdsn", typeof(string));
-                        table.Columns.Add("netsn", typeof(string));
-                        dataset.Tables.Add(table);
-
-                        while (reader.Read())
-                        {
-                            var row = table.NewRow();
-                            row["machinecode"] = reader.GetString(5);
-                            row["cpusn"] = reader.GetString(1);
-                            row["biossn"] = reader.GetString(2);
-                            row["hdsn"] = reader.GetString(3);
-                            row["netsn"] = reader.GetString(4);
-                            table.Rows.Add(row);
-                        }
-
-                        dataset.AcceptChanges();
-
-                        dataGridView1.DataSource = dataset.Tables[0];  // Assuming the DataGridView control is named dataGridView1  
-                    }
-                }
-
-                connection.Close();
+                ShowFileListRecords("SELECT * FROM files order by length desc");
 
             }
             else
@@ -347,112 +177,178 @@ namespace WinFormsApp1
 
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void ShowMachineList()
         {
-            //开启一个异步线程进行逻辑处理
-            new Task(new Action(() =>
+            using (var command = new SQLiteCommand())
             {
-                var records = new List<dynamic>();
+                command.Connection = connection;
+                command.CommandText = "SELECT * FROM machines";
 
-                //读取csv文件，已处理的
-
-                records = ReadCsv(records);
-
-                records.Sort(((a, b) => a.Filename.CompareTo(b.Filename)));
-
-
-                Dictionary<string, string> dict = new Dictionary<string, string> { };
-                Dictionary<string, string> dupDict = new Dictionary<string, string> { };
-                List<string> dicts = new List<string>();
-                int i = 0;
-                DirectoryInfo folder = new DirectoryInfo("E:\\CaoCao");
-
-
-                foreach (FileInfo file in folder.GetFiles("*.*", SearchOption.AllDirectories))
+                using (var reader = command.ExecuteReader())
                 {
+                    var dataset = new DataSet("machines");
+                    var table = new DataTable("machines");
+                    table.Columns.Add("machinecode", typeof(string));
+                    table.Columns.Add("cpusn", typeof(string));
+                    table.Columns.Add("biossn", typeof(string));
+                    table.Columns.Add("hdsn", typeof(string));
+                    table.Columns.Add("netsn", typeof(string));
+                    dataset.Tables.Add(table);
 
-                    // 处理每个文件
-                    // 处理每个文件
-                    //文件小于2M，不处理
-                    if (file.Length / 1000 / 1000 < 2) continue;
-
-                    if (records.Find(a => (a.Filename.Equals(file.ToString()) || a.Length.Equals(file.Length.ToString()))) != null)
+                    while (reader.Read())
                     {
-                        MessageBox.Show("file 已处理: " + file.ToString(), "处理", MessageBoxButtons.YesNo);
-                        continue;
+                        var row = table.NewRow();
+                        row["machinecode"] = reader.GetString(5);
+                        row["cpusn"] = reader.GetString(1);
+                        row["biossn"] = reader.GetString(2);
+                        row["hdsn"] = reader.GetString(3);
+                        row["netsn"] = reader.GetString(4);
+                        table.Rows.Add(row);
                     }
 
+                    dataset.AcceptChanges();
 
-                    //string md5 = MD5.HashFile(file.ToString(), "md5");
-                    string md5 = getMD5ByMD5CryptoService(file.ToString());
-
-                    if (dict.ContainsValue(md5))
-                    {
-                        if (!dupDict.ContainsKey(md5))
-                        {
-                            dupDict.Add(md5, file.ToString());
-
-                        }
-                        else
-                        {
-                            String old = dupDict.GetValueOrDefault(md5) + "";
-                            dupDict.Remove(md5);
-                            dupDict.Add(md5, file.ToString() + "; " + old);
-                        }
-
-
-
-                    }
-                    dict.Add(file.ToString(), md5);
-
-                    ListViewItem lvi = new ListViewItem(file.ToString());
-
-
-
-                    lvi.SubItems.Add(md5);
-                    lvi.SubItems.Add(file.Length / 1000 / 1000 + "M");
-
-                    this.listView1.Items.Add(lvi);
-
-
-                    dynamic record = new ExpandoObject();
-                    record.Filename = file.ToString();
-                    record.Md5 = md5;
-                    record.Length = file.Length;
-                    records.Add(record);
-
-
-                    i++;
+                    dataGridView1.DataSource = dataset.Tables[0];  // Assuming the DataGridView control is named dataGridView1  
                 }
-
-                //if (i > 5) return;
-                SaveCsv(records);
-
-                foreach (KeyValuePair<string, string> item in dupDict)
-                {
-
-                    ListViewItem lvi = new ListViewItem(item.Key);
-
-
-
-                    lvi.SubItems.Add(item.Value);
-
-                    this.listView2.Items.Add(lvi);
-                }
-                MessageBox.Show("处理完成", "处理", MessageBoxButtons.YesNo);
-            })).Start();
-        }
-
-        private static void SaveCsv(List<dynamic> records, string filename = "C:\\FileMd5Maps.csv")
-        {
-            using (var writer = new StreamWriter(filename))
-            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
-            {
-                csv.WriteRecords(records);
             }
         }
 
+        private void ShowFileListRecords(string sqlcommand)
+        {
+            using (var command = new SQLiteCommand())
+            {
+                command.Connection = connection;
+                command.CommandText = sqlcommand;
+
+                using (var reader = command.ExecuteReader())
+                {
+                    var dataset = new DataSet("files");
+                    var table = new DataTable("files");
+                    table.Columns.Add("mc", typeof(string));
+                    table.Columns.Add("filename", typeof(string));
+                    table.Columns.Add("md5", typeof(string));
+                    table.Columns.Add("length", typeof(Int64));
+                    dataset.Tables.Add(table);
+
+                    while (reader.Read())
+                    {
+                        var row = table.NewRow();
+                        row["mc"] = reader.GetString(4);
+                        row["filename"] = reader.GetString(1);
+                        row["md5"] = reader.GetString(2);
+                        row["length"] = reader.GetInt64(3);
+                        table.Rows.Add(row);
+                    }
+
+                    dataset.AcceptChanges();
+
+                    dataGridView2.DataSource = dataset.Tables[0];  // Assuming the DataGridView control is named dataGridView1  
+                }
+            }
+        }
+
+        private void StoreMachineCode2Db()
+        {
+            //生成本机机器码记录
+
+            string sql = "CREATE TABLE IF NOT EXISTS machines (id INTEGER PRIMARY KEY AUTOINCREMENT, CPUSN TEXT, BIOSSN TEXT,HDSN TEXT, NETSN TEXT, MachineCode TEXT)";
+            SQLiteCommand command = new SQLiteCommand(sql, connection);
+            command.ExecuteNonQuery();
+
+
+
+
+            command = new SQLiteCommand(connection);
+            // 定义 SQL 查询，并指定参数占位符  
+            sql = "INSERT INTO machines (CPUSN , BIOSSN ,HDSN , NETSN , MachineCode) VALUES (@cpusn , @biossn ,@hdsn , @netsn , @machinecode)";
+            command.CommandText = sql;
+
+            // 创建 SQLiteParameter 对象并设置参数值  
+            SQLiteParameter snParam1 = new SQLiteParameter("@cpusn", md5LocalMachine[0]);
+            command.Parameters.Add(snParam1);
+            SQLiteParameter snParam2 = new SQLiteParameter("@biossn", md5LocalMachine[1]);
+            command.Parameters.Add(snParam2);
+            SQLiteParameter snParam3 = new SQLiteParameter("@hdsn", md5LocalMachine[2]);
+            command.Parameters.Add(snParam3);
+            SQLiteParameter snParam4 = new SQLiteParameter("@netsn", md5LocalMachine[3]);
+            command.Parameters.Add(snParam4);
+            SQLiteParameter snParam5 = new SQLiteParameter("@machinecode", md5LocalMachine[4]);
+            command.Parameters.Add(snParam5);
+
+            command.ExecuteNonQuery();
+            return;
+        }
+
+
         private void button3_Click(object sender, EventArgs e)
+        {
+            userSendEndCommand = true;
+            dataGridView2.Visible = false;
+            //listView1.Visible = false;
+            listView2.Visible = false;
+
+            // 创建新实例  
+            Form2 form2 = new Form2(connection, machineCode, "D:\\");
+
+            // 显示新表单  
+            form2.Show();
+
+            /*
+            string sql = "alter table files  ADD COLUMN machine TEXT";
+            SQLiteCommand command = new SQLiteCommand(sql, connection);
+            command.ExecuteNonQuery();
+
+            sql = "update files  set machine = 'a7'";
+            command = new SQLiteCommand(sql, connection);
+            command.ExecuteNonQuery();
+            MessageBox.Show("处理完成", "处理", MessageBoxButtons.YesNo);
+
+            */
+
+        }
+
+        private static void Db2Mem()
+        {
+            if (File.Exists(dbfilename))
+            {
+                //db文件存在，读入内存
+                SQLiteConnection cnnIn = new SQLiteConnection("Data Source=" + dbfilename + ";Version=3;");
+
+                cnnIn.Open();
+
+
+                cnnIn.BackupDatabase(connection, "main", "main", -1, null, -1);
+                cnnIn.Close();
+
+
+
+            }
+        }
+
+        private static void Mem2Db()
+        {
+            try
+            {
+                //读入内存，写入db
+                SQLiteConnection cnnIn = new SQLiteConnection("Data Source=" + dbfilename + ";Version=3;");
+
+
+                cnnIn.Open();
+
+
+                connection.BackupDatabase(cnnIn, "main", "main", -1, null, -1);
+
+                cnnIn.Close();
+            }
+            catch (Exception ex)
+            {
+            }
+
+
+
+        }
+
+        private void button3_Click_bak(object sender, EventArgs e)
         {
             userSendEndCommand = true;
             // 获取当前选中节点  
@@ -648,7 +544,7 @@ namespace WinFormsApp1
             return strings;
         }
 
-        private void button4_Click(object sender, EventArgs e)
+        private void MD5TIMETEST(object sender, EventArgs e)
         {
 
             this.label1.Text = "start:::";
@@ -695,11 +591,105 @@ namespace WinFormsApp1
 
 
         }
+        private void buttestick(object sender, EventArgs e)
+        {
+            //开启一个异步线程进行逻辑处理
+            new Task(new Action(() =>
+            {
+                var records = new List<dynamic>();
+
+                //读取csv文件，已处理的
+
+                records = ReadCsv(records);
+
+                records.Sort(((a, b) => a.Filename.CompareTo(b.Filename)));
+
+
+                Dictionary<string, string> dict = new Dictionary<string, string> { };
+                Dictionary<string, string> dupDict = new Dictionary<string, string> { };
+                List<string> dicts = new List<string>();
+                int i = 0;
+                DirectoryInfo folder = new DirectoryInfo("E:\\CaoCao");
+
+
+                foreach (FileInfo file in folder.GetFiles("*.*", SearchOption.AllDirectories))
+                {
+
+                    // 处理每个文件
+                    // 处理每个文件
+                    //文件小于2M，不处理
+                    if (file.Length / 1000 / 1000 < 2) continue;
+
+                    if (records.Find(a => (a.Filename.Equals(file.ToString()) || a.Length.Equals(file.Length.ToString()))) != null)
+                    {
+                        MessageBox.Show("file 已处理: " + file.ToString(), "处理", MessageBoxButtons.YesNo);
+                        continue;
+                    }
+
+
+                    //string md5 = MD5.HashFile(file.ToString(), "md5");
+                    string md5 = getMD5ByMD5CryptoService(file.ToString());
+
+                    if (dict.ContainsValue(md5))
+                    {
+                        if (!dupDict.ContainsKey(md5))
+                        {
+                            dupDict.Add(md5, file.ToString());
+
+                        }
+                        else
+                        {
+                            String old = dupDict.GetValueOrDefault(md5) + "";
+                            dupDict.Remove(md5);
+                            dupDict.Add(md5, file.ToString() + "; " + old);
+                        }
 
 
 
+                    }
+                    dict.Add(file.ToString(), md5);
 
-        private static string getMD5ByMD5CryptoService(string path)
+                    ListViewItem lvi = new ListViewItem(file.ToString());
+
+
+
+                    lvi.SubItems.Add(md5);
+                    lvi.SubItems.Add(file.Length / 1000 / 1000 + "M");
+
+                    this.listView1.Items.Add(lvi);
+
+
+                    dynamic record = new ExpandoObject();
+                    record.Filename = file.ToString();
+                    record.Md5 = md5;
+                    record.Length = file.Length;
+                    records.Add(record);
+
+
+                    i++;
+                }
+
+                //if (i > 5) return;
+                //SaveCsv(records);
+
+                foreach (KeyValuePair<string, string> item in dupDict)
+                {
+
+                    ListViewItem lvi = new ListViewItem(item.Key);
+
+
+
+                    lvi.SubItems.Add(item.Value);
+
+                    this.listView2.Items.Add(lvi);
+                }
+                MessageBox.Show("处理完成", "处理", MessageBoxButtons.YesNo);
+            })).Start();
+        }
+
+
+
+        public static string getMD5ByMD5CryptoService(string path)
         {
             if (!File.Exists(path))
                 throw new ArgumentException(string.Format("<{0}>, 不存在", path));
@@ -726,116 +716,13 @@ namespace WinFormsApp1
             {
                 //MessageBox.Show("选择的磁盘：：" + selectedNode.Text, "请选择要操作的磁盘", MessageBoxButtons.OK);
             }
+            MessageBox.Show("磁盘查重需要一定时间，请耐心等待！", "提醒", MessageBoxButtons.OK);
+            // 创建新实例  
+            Form2 form2 = new Form2(connection, machineCode, selectedNode.Text);
 
-            //开启一个异步线程进行逻辑处理
-            new Task(new Action(() =>
-            {
-                this.label1.Text = "start.....";
+            // 显示新表单  
+            form2.Show();
 
-
-                var records = new List<dynamic>();
-
-                //读取csv文件，已处理的
-
-                records = ReadCsv(records);
-
-                records.Sort(((a, b) => a.Md5.CompareTo(b.Md5)));
-
-                Dictionary<string, string> dupDict = new Dictionary<string, string> { };
-                Dictionary<string, string> lengthDict = new Dictionary<string, string> { };
-
-                String oldMd5 = "";
-                String oldFilename = "";
-                bool needSave = false;
-                bool hasDup = false;
-
-                foreach (var record in records)
-                {
-                    this.label1.Text = record.Filename;
-                    //MessageBox.Show(record.Filename + ":::" , "处理", MessageBoxButtons.YesNo);
-                    string md5 = record.Md5;
-                    try
-                    {
-                        lengthDict.Add(md5, record.Length);
-                    }
-                    catch (Exception ex)
-                    {
-
-                    }
-
-
-
-                    if (md5 == oldMd5)
-                    {
-                        //发现重复文件
-                        hasDup = true;
-                        if (record.Filename.StartsWith(selectedNode.Text) || oldFilename.StartsWith(selectedNode.Text))
-                        {
-                            needSave = true;
-                        }
-
-                        if (!dupDict.ContainsKey(md5))
-                        {
-                            dupDict.Add(md5, record.Filename + "; " + oldFilename);
-
-                        }
-                        else
-                        {
-                            String old = dupDict.GetValueOrDefault(md5) + "";
-                            dupDict.Remove(md5);
-                            dupDict.Add(md5, record.Filename + "; " + old);
-                        }
-
-                    }
-                    else
-                    {
-                        //发现新md5
-                        if (!needSave && hasDup)
-                        {
-                            try
-                            {
-                                dupDict.Remove(oldMd5);
-                            }
-                            catch (Exception e)
-                            {
-
-                            }
-
-                        }
-                        oldFilename = record.Filename;
-                        oldMd5 = record.Md5;
-                        needSave = false;
-                        hasDup = false;
-
-                    }
-
-                }
-                this.label1.Text = "end scanning.....";
-                var recordsSave = new List<dynamic>();
-                foreach (KeyValuePair<string, string> item in dupDict)
-                {
-
-                    ListViewItem lvi = new ListViewItem(item.Key);
-
-                    string slength = lengthDict.GetValueOrDefault(item.Key);
-                    lvi.SubItems.Add(slength);
-                    lvi.SubItems.Add(item.Value);
-
-                    this.listView2.Items.Add(lvi);
-                    dynamic record = new ExpandoObject();
-                    record.Md5 = item.Key;
-                    record.Length = slength;
-                    record.Filename = item.Value;
-                    recordsSave.Add(record);
-
-                }
-                //this.listView2.Sort(this.listView2.Columns["大小"], ListSortDirection.Ascending);
-
-                SaveCsv(recordsSave, "C:\\duplicatefiles" + selectedNode.Text.Substring(0, 1) + ".csv");
-                this.label1.Text = "end.....";
-
-
-            })).Start();
         }
 
         private void treeView1_Leave(object sender, EventArgs e)
@@ -872,6 +759,28 @@ namespace WinFormsApp1
                     // 设置单元格颜色为红色  
                     e.CellStyle.BackColor = Color.Red;
                 }
+            }
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            Mem2Db();
+            connection.Close();
+        }
+
+        private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+
+            dataGridView2.Visible = true;
+
+            if (e.RowIndex > -1)
+
+            {
+                string mc = dataGridView1.Rows[e.RowIndex].Cells["machinecode"].Value.ToString().Substring(0, 2);
+                //MessageBox.Show("选择的磁盘：：" + mc, "请选择要操作的磁盘", MessageBoxButtons.OK);
+
+                ShowFileListRecords("SELECT * FROM files where machine ='" + mc + "' order by length desc");
+
             }
         }
     }
