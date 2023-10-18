@@ -721,7 +721,8 @@ namespace WinFormsApp1
             Form2 form2 = new Form2(connection, machineCode, selectedNode.Text);
 
             // 显示新表单  
-            form2.Show();
+            //form2.Show();
+            form2.ShowDialog();
 
         }
 
