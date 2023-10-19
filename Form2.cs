@@ -272,5 +272,40 @@ namespace FindDup4Disk
                 }
             }
         }
+
+        private void dataGridView2_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                ContextMenuStrip menu = new ContextMenuStrip();
+
+                menu.Items.Add("Copy", null, CopyToClipboard);
+                menu.Items.Add("Paste", null, PasteFromClipboard);
+
+                menu.Show(dataGridView2, e.Location);
+            }
+        }
+        private void CopyToClipboard(object sender, EventArgs e)
+        {
+            // 将选定的行数据复制到剪贴板  
+            if (dataGridView2.GetCellCount(DataGridViewElementStates.Selected) > 0)
+            {
+                DataGridViewCell cell = dataGridView2.SelectedCells[0];
+                Clipboard.SetText(cell.Value.ToString());
+            }
+        }
+        private void PasteFromClipboard(object sender, EventArgs e)
+        {
+            // 从剪贴板中粘贴数据到选定的单元格  
+            if (Clipboard.ContainsText())
+            {
+                string text = Clipboard.GetText();
+                if (dataGridView2.GetCellCount(DataGridViewElementStates.Selected) > 0)
+                {
+                    DataGridViewCell cell = dataGridView2.SelectedCells[0];
+                    cell.Value = text;
+                }
+            }
+        }
     }
 }

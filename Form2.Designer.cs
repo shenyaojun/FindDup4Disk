@@ -87,6 +87,7 @@
             dataGridView2.RowTemplate.Height = 29;
             dataGridView2.Size = new Size(1034, 202);
             dataGridView2.TabIndex = 6;
+            dataGridView2.MouseUp += dataGridView2_MouseUp;
             // 
             // Form2
             // 
