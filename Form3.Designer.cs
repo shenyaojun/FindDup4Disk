@@ -80,6 +80,7 @@
             Controls.Add(listView2);
             Name = "Form3";
             Text = "Form3";
+            FormClosing += Form3_FormClosing;
             Load += Form3_Load;
             ResumeLayout(false);
             PerformLayout();

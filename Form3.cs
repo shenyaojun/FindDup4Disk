@@ -22,6 +22,8 @@ namespace FindDup4Disk
         bool userSendEndCommand = false;
         string machineCode;
         string disk4Scan;
+        // 创建一个ManualResetEvent对象  
+        ManualResetEvent startSignal = new ManualResetEvent(false);
 
         public Form3(SQLiteConnection connection, string machineCode, string disk4Scan)
         {
@@ -96,7 +98,16 @@ namespace FindDup4Disk
                                 SaveCsv(records);
                                 this.label1.Text = "用户要求暂停";
                                 Mem2Db();
-                                return;
+                                try
+                                {
+
+                                    startSignal.WaitOne(); // 等待信号，直到第一个线程调用Set()方法  
+                                }
+                                catch (Exception ex)
+                                {
+
+                                }
+                                //return;
                             }
                             // 处理每个文件
                             this.label1.Text = file.ToString();
@@ -245,7 +256,32 @@ namespace FindDup4Disk
 
         private void button1_Click(object sender, EventArgs e)
         {
-            userSendEndCommand = true;
+            if (!userSendEndCommand)
+            {
+
+                userSendEndCommand = true;
+                this.button1.Text = "继续";
+            }
+            else
+            {
+
+                startSignal.Set(); // 触发信号，允许第二个线程开始执行 
+                userSendEndCommand = false;
+                this.button1.Text = "暂停";
+            }
+
+        }
+
+        private void Form3_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (!userSendEndCommand)
+            {
+                MessageBox.Show("磁盘扫描正在进行中，请先暂停！", "提示", MessageBoxButtons.OK);
+
+                e.Cancel = true;
+
+            }
+
         }
     }
 }
