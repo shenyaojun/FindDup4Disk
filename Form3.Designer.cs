@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form3));
             listView2 = new ListView();
             label1 = new Label();
             label2 = new Label();
@@ -78,6 +79,7 @@
             Controls.Add(label2);
             Controls.Add(label1);
             Controls.Add(listView2);
+            Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "Form3";
             Text = "Form3";
             FormClosing += Form3_FormClosing;

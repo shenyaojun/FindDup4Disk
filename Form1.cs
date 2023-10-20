@@ -14,21 +14,37 @@ using System.Text;
 using System.Data;
 using System.Numerics;
 using FindDup4Disk;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace WinFormsApp1
 {
     public partial class Form1 : Form
     {
         private bool userSendEndCommand;
+        private TreeNode _selectedNode;
         string[] md5LocalMachine;
         public static string dbfilename = "C:\\daba.db";
         string machineCode;
         const string connectionString = "Data Source=:memory:;Version=3;";
         static SQLiteConnection connection = new SQLiteConnection(connectionString);
+        //private byte[] formIconBytes;
 
         public Form1()
         {
             InitializeComponent();
+            /*
+            string filePath = "app48.ico"; // 替换为你的.ico文件路径  
+
+            try
+            {
+                formIconBytes = File.ReadAllBytes(filePath);
+            }
+            catch (IOException e)
+            {
+            }
+
+            this.Icon = new Icon(new MemoryStream(formIconBytes));
+            */
         }
 
 
@@ -43,6 +59,7 @@ namespace WinFormsApp1
                 MessageBox.Show("请选择磁盘！", "请选择要操作的磁盘", MessageBoxButtons.OK);
                 return;
             }
+            _selectedNode = treeView1.SelectedNode;
 
             MessageBox.Show("磁盘Md5扫描需要比较长的时间，请耐心等待！", "提醒", MessageBoxButtons.OK);
             // 创建新实例  
@@ -117,6 +134,8 @@ namespace WinFormsApp1
                     rootNode.Nodes.Add(childNode);
                 }
             }
+
+            treeView1.ExpandAll();
 
             //读取本机机器码
             md5LocalMachine = GenerateMachineCode();
@@ -730,6 +749,8 @@ namespace WinFormsApp1
         {
             // 确保选中的节点在失去焦点时仍然保持选中状态  
             //treeView1.SelectedNode = treeView1.Focused;
+            // 在失去焦点事件中记录选中的节点  
+            _selectedNode = treeView1.SelectedNode;
         }
 
         private void treeView1_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
@@ -783,6 +804,27 @@ namespace WinFormsApp1
                 ShowFileListRecords("SELECT * FROM files where machine ='" + mc + "' order by length desc");
 
             }
+        }
+
+        private void Form1_Activated(object sender, EventArgs e)
+        {
+
+            // 需要恢复选中状态时，例如在按钮点击事件中  
+            if (_selectedNode != null)
+            {
+                treeView1.SelectedNode = _selectedNode;
+                treeView1.Focus();
+            }
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            // 创建新实例  
+            Form4 form4 = new Form4();
+
+            // 显示新表单  
+            form4.Show();
+            //form4.ShowDialog();
         }
     }
 }

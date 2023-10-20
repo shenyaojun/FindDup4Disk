@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             button1 = new Button();
             listView1 = new ListView();
             listView2 = new ListView();
@@ -37,6 +38,7 @@
             treeView1 = new TreeView();
             dataGridView1 = new DataGridView();
             dataGridView2 = new DataGridView();
+            button2 = new Button();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dataGridView2).BeginInit();
             SuspendLayout();
@@ -130,12 +132,25 @@
             dataGridView2.Size = new Size(1032, 316);
             dataGridView2.TabIndex = 11;
             // 
+            // button2
+            // 
+            button2.BackColor = SystemColors.GradientActiveCaption;
+            button2.ForeColor = Color.MediumVioletRed;
+            button2.Location = new Point(976, 49);
+            button2.Name = "button2";
+            button2.Size = new Size(369, 44);
+            button2.TabIndex = 12;
+            button2.Text = "去扫描另一台新机器";
+            button2.UseVisualStyleBackColor = false;
+            button2.Click += button2_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(9F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             AutoValidate = AutoValidate.EnablePreventFocusChange;
-            ClientSize = new Size(1415, 742);
+            ClientSize = new Size(1415, 698);
+            Controls.Add(button2);
             Controls.Add(dataGridView1);
             Controls.Add(treeView1);
             Controls.Add(label2);
@@ -145,8 +160,10 @@
             Controls.Add(dataGridView2);
             Controls.Add(listView2);
             Controls.Add(listView1);
+            Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "Form1";
             Text = "文件查重";
+            Activated += Form1_Activated;
             FormClosing += Form1_FormClosing;
             Load += Form1_Load;
             ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
@@ -166,5 +183,6 @@
         private TreeView treeView1;
         private DataGridView dataGridView1;
         private DataGridView dataGridView2;
+        private Button button2;
     }
 }
