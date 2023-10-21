@@ -150,6 +150,12 @@ namespace WinFormsApp1
 
             if (File.Exists(dbfilename))
             {
+                //检查文件权限
+                if (File.GetAttributes(dbfilename) == FileAttributes.ReadOnly)
+                {
+                    //Console.WriteLine($"文件 {dbfilename} 是只读的。");
+                    MessageBox.Show($"文件 {dbfilename} 是只读的，请确保文件可读写，然后重新运行本软件。", "无法保存扫描结果！", MessageBoxButtons.OK);
+                }
                 //db文件存在，读入内存
 
                 connection.Open();

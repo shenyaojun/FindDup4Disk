@@ -195,6 +195,7 @@ namespace FindDup4Disk
 
                 SaveCsv(records);
                 Mem2Db();
+                this.label1.Text = "磁盘扫描已完成！";
 
             })).Start();
         }
