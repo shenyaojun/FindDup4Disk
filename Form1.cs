@@ -196,7 +196,25 @@ namespace WinFormsApp1
             }
             else
             {
-                MessageBox.Show("no db file found", "处理", MessageBoxButtons.YesNo);
+                if (MessageBox.Show($"未找到{dbfilename},确定要重新初始化吗？若在其他机器上运行过本程序，请将此文件拷贝到本机再重新运行本程序！ ", "重要提醒", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                {
+                    try
+                    {
+                        File.Copy("daba.db", dbfilename);
+                        //初始化db
+                        connection.Open();
+                        Db2Mem();
+
+                        StoreMachineCode2Db();
+                        ShowMachineList();
+
+                        ShowFileListRecords("SELECT * FROM files order by length desc");
+                    }
+                    catch (IOException ex)
+                    {
+                        MessageBox.Show($"{dbfilename}初始化失败！请检查是否有C盘操作权限！ ", "重要提醒", MessageBoxButtons.OK);
+                    }
+                }
             }
 
 

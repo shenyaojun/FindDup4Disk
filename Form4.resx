@@ -118,9 +118,9 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="richTextBox1.Text" xml:space="preserve">
-    <value>1. 本软件支持多台机器上的文件扫描和相同性比较；
+    <value>1. 本软件支持多台机器上的文件扫描和文件重复比较；
 
-2. 扫描完本机后，去扫描新的机器时，请确保将本机C:\daba.db拷贝到新机器的同样文件C:\daba.db；
+2. 扫描完本机后，去扫描新的机器时，请确保将本机C:\daba.db拷贝到新机器的同样位置C:\daba.db；
 
 3. 新机器上同样安装本软件；扫描新机器的磁盘；
 
