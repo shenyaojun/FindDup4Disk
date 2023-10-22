@@ -8,7 +8,7 @@ FindDup4Disk可以帮你扫描多台机器上的文件，根据其MD5值判断�
 ![image-20231021183618294](imgs/image-20231021183618294.png)
 
 ## 安装
-需要先安装Windows .net6。
+需要先安装Windows .net6 runtime。未安装的话运行程序会提示下载。
 下载打包好的release包解压就可以直接运行。
 
 ## 一些小提示
