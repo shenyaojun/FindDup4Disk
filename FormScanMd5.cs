@@ -16,7 +16,7 @@ using WinFormsApp1;
 
 namespace FindDup4Disk
 {
-    public partial class Form3 : Form
+    public partial class FormScanMd5 : Form
     {
         SQLiteConnection connection;
         bool userSendEndCommand = false;
@@ -26,7 +26,7 @@ namespace FindDup4Disk
         // 创建一个ManualResetEvent对象  
         ManualResetEvent startSignal = new ManualResetEvent(false);
 
-        public Form3(SQLiteConnection connection, string machineCode, string disk4Scan)
+        public FormScanMd5(SQLiteConnection connection, string machineCode, string disk4Scan)
         {
             InitializeComponent();
             this.connection = connection;
@@ -124,7 +124,7 @@ namespace FindDup4Disk
                             }
 
                             //string md5 = MD5.HashFile(file.ToString(), "md5");
-                            string md5 = Form1.getMD5ByMD5CryptoService(file.ToString());
+                            string md5 = FormMain.getMD5ByMD5CryptoService(file.ToString());
 
                             if (dict.ContainsValue(md5))
                             {
@@ -240,7 +240,7 @@ namespace FindDup4Disk
             try
             {
                 //读入内存，写入db
-                SQLiteConnection cnnIn = new SQLiteConnection("Data Source=" + Form1.dbfilename + ";Version=3;");
+                SQLiteConnection cnnIn = new SQLiteConnection("Data Source=" + FormMain.dbfilename + ";Version=3;");
 
 
                 cnnIn.Open();

@@ -10,9 +10,9 @@ using System.Windows.Forms;
 
 namespace FindDup4Disk
 {
-    public partial class Form4 : Form
+    public partial class FormTips : Form
     {
-        public Form4()
+        public FormTips()
         {
             InitializeComponent();
         }

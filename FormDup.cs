@@ -17,14 +17,14 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace FindDup4Disk
 {
-    public partial class Form2 : Form
+    public partial class FormDup : Form
     {
         SQLiteConnection connection;
         bool isRunning = false;
         string machineCode;
         string disk4Scan;
 
-        public Form2(SQLiteConnection connection, string machineCode, string disk4Scan)
+        public FormDup(SQLiteConnection connection, string machineCode, string disk4Scan)
         {
             InitializeComponent();
             this.connection = connection;

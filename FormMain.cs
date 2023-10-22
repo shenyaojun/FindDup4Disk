@@ -18,7 +18,7 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace WinFormsApp1
 {
-    public partial class Form1 : Form
+    public partial class FormMain : Form
     {
         private bool userSendEndCommand;
         private TreeNode _selectedNode;
@@ -29,7 +29,7 @@ namespace WinFormsApp1
         static SQLiteConnection connection = new SQLiteConnection(connectionString);
         //private byte[] formIconBytes;
 
-        public Form1()
+        public FormMain()
         {
             InitializeComponent();
             /*
@@ -63,7 +63,7 @@ namespace WinFormsApp1
 
             MessageBox.Show("磁盘Md5扫描需要比较长的时间，请耐心等待！", "提醒", MessageBoxButtons.OK);
             // 创建新实例  
-            Form3 form3 = new Form3(connection, machineCode, selectedNode.Text);
+            FormScanMd5 form3 = new FormScanMd5(connection, machineCode, selectedNode.Text);
 
             // 设置新窗口的属性为模态窗口  
             //form3.ModalResult = DialogResult.OK;
@@ -331,7 +331,7 @@ namespace WinFormsApp1
             listView2.Visible = false;
 
             // 创建新实例  
-            Form2 form2 = new Form2(connection, machineCode, "D:\\");
+            FormDup form2 = new FormDup(connection, machineCode, "D:\\");
 
             // 显示新表单  
             form2.Show();
@@ -761,7 +761,7 @@ namespace WinFormsApp1
             }
             MessageBox.Show("磁盘查重需要一定时间，请耐心等待！", "提醒", MessageBoxButtons.OK);
             // 创建新实例  
-            Form2 form2 = new Form2(connection, machineCode, selectedNode.Text);
+            FormDup form2 = new FormDup(connection, machineCode, selectedNode.Text);
 
             // 显示新表单  
             //form2.Show();
@@ -844,7 +844,7 @@ namespace WinFormsApp1
         private void button2_Click(object sender, EventArgs e)
         {
             // 创建新实例  
-            Form4 form4 = new Form4();
+            FormTips form4 = new FormTips();
 
             // 显示新表单  
             form4.Show();

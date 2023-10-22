@@ -1,6 +1,6 @@
 ﻿namespace FindDup4Disk
 {
-    partial class Form4
+    partial class FormTips
     {
         /// <summary>
         /// Required designer variable.
@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form4));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormTips));
             richTextBox1 = new RichTextBox();
             SuspendLayout();
             // 

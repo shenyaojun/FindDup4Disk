@@ -1,6 +1,6 @@
 ﻿namespace FindDup4Disk
 {
-    partial class Form3
+    partial class FormScanMd5
     {
         /// <summary>
         /// Required designer variable.
@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form3));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormScanMd5));
             listView2 = new ListView();
             label1 = new Label();
             label2 = new Label();
