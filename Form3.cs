@@ -20,6 +20,7 @@ namespace FindDup4Disk
     {
         SQLiteConnection connection;
         bool userSendEndCommand = false;
+        bool userScanningEnd = false;
         string machineCode;
         string disk4Scan;
         // 创建一个ManualResetEvent对象  
@@ -195,7 +196,9 @@ namespace FindDup4Disk
 
                 SaveCsv(records);
                 Mem2Db();
+                userScanningEnd = true;
                 this.label1.Text = "磁盘扫描已完成！";
+                this.button1.Text = "扫描结束";
 
             })).Start();
         }
@@ -257,6 +260,12 @@ namespace FindDup4Disk
 
         private void button1_Click(object sender, EventArgs e)
         {
+            if (userScanningEnd)
+            {
+                this.Close();
+                return;
+            }
+                
             if (!userSendEndCommand)
             {
 
@@ -275,13 +284,17 @@ namespace FindDup4Disk
 
         private void Form3_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (!userSendEndCommand)
+            if (!userScanningEnd)
             {
-                MessageBox.Show("磁盘扫描正在进行中，请先暂停！", "提示", MessageBoxButtons.OK);
+                if (!userSendEndCommand)
+                {
+                    MessageBox.Show("磁盘扫描正在进行中，请先暂停！", "提示", MessageBoxButtons.OK);
 
-                e.Cancel = true;
+                    e.Cancel = true;
 
+                }
             }
+            
 
         }
     }
