@@ -147,6 +147,7 @@ namespace WinFormsApp1
             this.label2.Text = md5LocalMachine[4];
 
             machineCode = md5LocalMachine[4];
+            TestWriteOnCDisk();
 
             if (File.Exists(dbfilename))
             {
@@ -219,7 +220,39 @@ namespace WinFormsApp1
 
 
         }
+        private void TestWriteOnCDisk()
+        {
+            // 指定文件路径和名称  
+            string filePath = @"C:\FindDup4Disk.TestWriteOnCDisk.txt";
 
+            try
+            {
+                // 检查文件是否存在  
+                if (!File.Exists(filePath))
+                {
+                    // 创建新文件并写入内容  
+                    using (StreamWriter writer = File.CreateText(filePath))
+                    {
+                        writer.WriteLine("这是一个新文件");
+                    }
+
+                    Console.WriteLine("文件已创建");
+                }
+                else
+                {
+                    Console.WriteLine("文件已存在");
+                }
+
+                // 删除文件  
+                File.Delete(filePath);
+            }
+            catch (Exception ex) {
+
+                MessageBox.Show("初始化失败！请检查是否有C盘操作权限！ ", "重要提醒", MessageBoxButtons.OK);
+
+            }
+
+        }
         private void ShowMachineList()
         {
             using (var command = new SQLiteCommand())
