@@ -550,6 +550,11 @@ namespace WinFormsApp1
             {
             }
 
+            if (sCPUSerialNumber == "")
+            {
+                sCPUSerialNumber = Environment.MachineName;
+            }
+
             string sBIOSSerialNumber = "";
             try
             {
