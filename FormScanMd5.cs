@@ -129,13 +129,13 @@ namespace FindDup4Disk
                             // 更新ProgressBar的值  
                             int progressValueNew = (int)(scannedSpace / (double)usedSpace * 100);
                             progressValueNew = progressValueNew * 3;
-                            if (progressValueNew > progressValue && progressValueNew < 100) {
+                            if (progressValueNew > progressValue && progressValueNew < 70) {
                                 progressValue = progressValueNew;
                             }
                             else
                             {
                                 progressValueNew = progressValueNew / 2;
-                                if (progressValueNew > progressValue && progressValueNew < 100)
+                                if (progressValueNew > progressValue && progressValueNew < 95)
                                 {
                                     progressValue = progressValueNew;
                                 }
