@@ -139,6 +139,14 @@ namespace FindDup4Disk
                                 {
                                     progressValue = progressValueNew;
                                 }
+                                else
+                                {
+                                    progressValueNew = progressValueNew * 2 / 3;
+                                    if (progressValueNew > progressValue && progressValueNew <= 100)
+                                    {
+                                        progressValue = progressValueNew;
+                                    }
+                                }
                             }
 
                             progressBar1.Value = progressValue;
