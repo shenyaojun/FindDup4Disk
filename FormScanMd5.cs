@@ -88,6 +88,7 @@ namespace FindDup4Disk
 
                 //String[] dicts = {};
                 DirectoryInfo TheFolder = new DirectoryInfo(disk4Scan);
+                dicts.Add(disk4Scan);
                 foreach (DirectoryInfo NextFolder in TheFolder.GetDirectories())
                 {
                     Console.WriteLine(NextFolder.FullName);
@@ -102,7 +103,10 @@ namespace FindDup4Disk
                     {
                         //MessageBox.Show(directory, "处理", MessageBoxButtons.YesNo);
                         DirectoryInfo folder = new DirectoryInfo(directory);
-                        foreach (FileInfo file in folder.GetFiles("*.*", SearchOption.AllDirectories))
+                        int searchOption = (int)SearchOption.AllDirectories;
+                        if (directory == disk4Scan)
+                            searchOption = (int)SearchOption.TopDirectoryOnly;
+                        foreach (FileInfo file in folder.GetFiles("*.*", (SearchOption)searchOption))
 
                         {
                             //用户点击了停止命令
