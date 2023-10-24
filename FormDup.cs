@@ -56,7 +56,145 @@ namespace FindDup4Disk
 
         }
 
+        //重写过程，利用DB SQL优化性能
         private void StartScanning()
+        {
+            //开启一个异步线程进行逻辑处理
+            new Task(new Action(() =>
+            {
+                this.label1.Text = "start.....";
+
+
+                var records = new List<dynamic>();
+
+                //读取csv文件，已处理的
+
+                //records = ReadDbAsRecord("SELECT * FROM files where Md5 in (select Md5 from files group by Md5 having count(1)> 1) order by Md5");
+                //优化SQL
+                records = ReadDbAsRecord("SELECT * FROM files where Md5 in (SELECT Md5 FROM files where Md5 in (select Md5 from files group by Md5 having count(1)> 1) and Filename like '"+ disk4Scan + "%' and machine = '"+ machineCode.Substring(0, 2) + "') order by Length desc");
+
+                //MessageBox.Show("SELECT * FROM files where Md5 in (SELECT Md5 FROM files where Md5 in (select Md5 from files group by Md5 having count(1)> 1) and Filename like '" + disk4Scan + "%' and machine = '" + machineCode.Substring(0, 2) + "') order by Md5" + ":::", "处理", MessageBoxButtons.YesNo);
+
+
+                //records.Sort(((a, b) => a.Md5.CompareTo(b.Md5)));
+
+                Dictionary<string, string> dupDict = new Dictionary<string, string> { };
+                Dictionary<string, string> lengthDict = new Dictionary<string, string> { };
+
+                String oldMd5 = "";
+                String oldFilename = "";
+                String oldMachine = "";
+                bool needSave = false;
+                bool hasDup = false;
+
+                foreach (var record in records)
+                {
+                    this.label1.Text = record.Filename;
+                    //MessageBox.Show(record.Filename + ":::" , "处理", MessageBoxButtons.YesNo);
+                    string md5 = record.Md5;
+                    try
+                    {
+                        lengthDict.Add(md5, record.Length.ToString());
+                    }
+                    catch (Exception ex)
+                    {
+
+                    }
+
+
+                    if (md5 == oldMd5)
+                    {
+                        //发现重复文件
+
+                        hasDup = true;
+                        if ((record.Filename.StartsWith(disk4Scan) && record.machine == machineCode.Substring(0, 2)) || (oldFilename.StartsWith(disk4Scan) && oldMachine == machineCode))
+                        {
+                            needSave = true;
+                        }
+
+                        if (!dupDict.ContainsKey(md5))
+                        {
+                            this.label2.Text = record.machine.Substring(0, 2) + "." + record.Filename;
+                            dupDict.Add(md5, record.machine.Substring(0, 2) + "." + record.Filename + "; " + oldMachine.Substring(0, 2) + "." + oldFilename);
+
+                        }
+                        else
+                        {
+                            this.label2.Text = record.machine.Substring(0, 2) + "*" + record.Filename;
+                            String old = dupDict.GetValueOrDefault(md5) + "";
+                            dupDict.Remove(md5);
+                            dupDict.Add(md5, record.machine.Substring(0, 2) + "." + record.Filename + "; " + old);
+                        }
+
+                    }
+                    else
+                    {
+                        //发现新md5
+                        if (!needSave && hasDup)
+                        {
+                            try
+                            {
+                                dupDict.Remove(oldMd5);
+                            }
+                            catch (Exception e)
+                            {
+
+                            }
+
+                        }
+                        oldFilename = record.Filename;
+                        oldMd5 = record.Md5;
+                        oldMachine = record.machine;
+                        needSave = false;
+                        hasDup = false;
+
+                    }
+
+                }
+                this.label1.Text = "end scanning.....";
+                var recordsSave = new List<dynamic>();
+
+                var dataset = new DataSet("dupfiles");
+                var table = new DataTable("dupfiles");
+                table.Columns.Add("MD5", typeof(string));
+                table.Columns.Add("大小", typeof(Int64));
+                table.Columns.Add("文件", typeof(string));
+                dataset.Tables.Add(table);
+
+                foreach (KeyValuePair<string, string> item in dupDict)
+                {
+
+
+                    string slength = lengthDict.GetValueOrDefault(item.Key);
+
+                    dynamic record = new ExpandoObject();
+                    record.Md5 = item.Key;
+                    record.Length = slength;
+                    record.Filename = item.Value;
+                    recordsSave.Add(record);
+                    var row = table.NewRow();
+                    row["MD5"] = item.Key;
+                    row["大小"] = slength;
+                    row["文件"] = item.Value;
+                    table.Rows.Add(row);
+
+
+                }
+
+                dataset.AcceptChanges();
+
+                dataGridView1.DataSource = dataset.Tables[0];  // Assuming the DataGridView control is named dataGridView1
+
+                //this.listView2.Sort(this.listView2.Columns["大小"], ListSortDirection.Ascending);
+
+                SaveCsv(recordsSave, "C:\\duplicatefiles" + disk4Scan.Substring(0, 1) + ".csv");
+                this.label1.Text = "end.....";
+
+
+            })).Start();
+        }
+
+        private void StartScanning_bak()
         {
             //开启一个异步线程进行逻辑处理
             new Task(new Action(() =>

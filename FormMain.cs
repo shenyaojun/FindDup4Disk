@@ -530,30 +530,33 @@ namespace WinFormsApp1
 
             //读取本机硬件信息
             string sCPUSerialNumber = "";
-            try
-            {
-                ManagementObjectSearcher searcher =
-                    new ManagementObjectSearcher("Select * From Win32_Processor");
-
-                foreach (ManagementObject mo in searcher.Get())
-                {
-                    sCPUSerialNumber = mo["ProcessorId"].ToString().Trim();
-                    break;
-                }
-                //MessageBox.Show("sCPUSerialNumber！" + sCPUSerialNumber, "请选择要操作的磁盘", MessageBoxButtons.OK);
-
-
-
-
-            }
-            catch (Exception ex)
-            {
-            }
-
+            //优先取更有意义的机器名
+            sCPUSerialNumber = Environment.MachineName;
             if (sCPUSerialNumber == "")
             {
-                sCPUSerialNumber = Environment.MachineName;
+                try
+                {
+                    ManagementObjectSearcher searcher =
+                        new ManagementObjectSearcher("Select * From Win32_Processor");
+
+                    foreach (ManagementObject mo in searcher.Get())
+                    {
+                        sCPUSerialNumber = mo["ProcessorId"].ToString().Trim();
+                        break;
+                    }
+                    //MessageBox.Show("sCPUSerialNumber！" + sCPUSerialNumber, "请选择要操作的磁盘", MessageBoxButtons.OK);
+
+
+
+
+                }
+                catch (Exception ex)
+                {
+                }
             }
+           
+
+            
 
             string sBIOSSerialNumber = "";
             try
