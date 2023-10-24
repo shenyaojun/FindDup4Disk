@@ -23,15 +23,19 @@ namespace FindDup4Disk
         bool userScanningEnd = false;
         string machineCode;
         string disk4Scan;
+        long usedSpace;
+        long scannedSpace;
+        int progressValue;
         // 创建一个ManualResetEvent对象  
         ManualResetEvent startSignal = new ManualResetEvent(false);
 
-        public FormScanMd5(SQLiteConnection connection, string machineCode, string disk4Scan)
+        public FormScanMd5(SQLiteConnection connection, string machineCode, string disk4Scan, long usedSpace)
         {
             InitializeComponent();
             this.connection = connection;
             this.machineCode = machineCode;
             this.disk4Scan = disk4Scan;
+            this.usedSpace = usedSpace;
         }
 
         private void Form3_Load(object sender, EventArgs e)
@@ -42,13 +46,21 @@ namespace FindDup4Disk
             this.listView2.View = View.Details;
             //this.listView1.Dock = DockStyle.Fill;
 
-            this.listView2.Columns.Add("文件名", 220); //一步添加
+            this.listView2.Columns.Add("文件名", 800); //一步添加
             this.listView2.Columns.Add("MD5", 220); //一步添加
 
             this.listView2.Columns.Add("大小", 120); //一步添加
 
 
 
+            // 设置ProgressBar的最大值和最小值  
+            progressBar1.Minimum = 0;
+            progressBar1.Maximum = 100;
+
+            scannedSpace = 0;
+            // 更新ProgressBar的值  
+            progressBar1.Value = 0;
+            progressValue = 0;
 
             StartMd5Scanning();
         }
@@ -112,6 +124,26 @@ namespace FindDup4Disk
                             }
                             // 处理每个文件
                             this.label1.Text = file.ToString();
+                            scannedSpace = scannedSpace + file.Length;
+
+                            // 更新ProgressBar的值  
+                            int progressValueNew = (int)(scannedSpace / (double)usedSpace * 100);
+                            progressValueNew = progressValueNew * 3;
+                            if (progressValueNew > progressValue && progressValueNew < 100) {
+                                progressValue = progressValueNew;
+                            }
+                            else
+                            {
+                                progressValueNew = progressValueNew / 2;
+                                if (progressValueNew > progressValue && progressValueNew < 100)
+                                {
+                                    progressValue = progressValueNew;
+                                }
+                            }
+
+                            progressBar1.Value = progressValue;
+                            this.label3.Text = progressValue.ToString() + "%";
+
                             if (file.Length / 1000 / 1000 < 2) continue;
                             if (file.ToString().EndsWith(".dll")) continue;
                             if (file.ToString().EndsWith(".exe")) continue;
@@ -178,7 +210,7 @@ namespace FindDup4Disk
 
                             command.ExecuteNonQuery();
 
-
+                            
 
                             i++;
                         }
@@ -199,6 +231,9 @@ namespace FindDup4Disk
                 userScanningEnd = true;
                 this.label1.Text = "磁盘扫描已完成！";
                 this.button1.Text = "扫描结束";
+                progressValue = 100;
+                progressBar1.Value = progressValue;
+                this.label3.Text = progressValue.ToString() + "%";
 
             })).Start();
         }
@@ -265,7 +300,7 @@ namespace FindDup4Disk
                 this.Close();
                 return;
             }
-                
+
             if (!userSendEndCommand)
             {
 
@@ -294,7 +329,7 @@ namespace FindDup4Disk
 
                 }
             }
-            
+
 
         }
     }

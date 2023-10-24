@@ -271,7 +271,7 @@ namespace FindDup4Disk
 
                     dataset.AcceptChanges();
 
-                    dataGridView2.DataSource = dataset.Tables[0];  // Assuming the DataGridView control is named dataGridView1  
+                    dataGridView2.DataSource = dataset.Tables[0];  
                 }
             }
         }

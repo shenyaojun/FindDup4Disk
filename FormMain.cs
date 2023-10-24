@@ -27,6 +27,7 @@ namespace WinFormsApp1
         string machineCode;
         const string connectionString = "Data Source=:memory:;Version=3;";
         static SQLiteConnection connection = new SQLiteConnection(connectionString);
+        Dictionary<string, long> driveUsedSpace = new Dictionary<string, long> { };
         //private byte[] formIconBytes;
 
         public FormMain()
@@ -63,7 +64,7 @@ namespace WinFormsApp1
 
             MessageBox.Show("磁盘Md5扫描需要比较长的时间，请耐心等待！", "提醒", MessageBoxButtons.OK);
             // 创建新实例  
-            FormScanMd5 form3 = new FormScanMd5(connection, machineCode, selectedNode.Text);
+            FormScanMd5 form3 = new FormScanMd5(connection, machineCode, selectedNode.Text, driveUsedSpace[selectedNode.Text]);
 
             // 设置新窗口的属性为模态窗口  
             //form3.ModalResult = DialogResult.OK;
@@ -132,6 +133,11 @@ namespace WinFormsApp1
                     // 添加子节点  
                     TreeNode childNode = new TreeNode(drive.Name);
                     rootNode.Nodes.Add(childNode);
+                    long totalSize = drive.TotalSize; // 总大小，以字节为单位  
+                    long freeSpace = drive.TotalFreeSpace; // 剩余空间，以字节为单位  
+                    long usedSpace = (totalSize - freeSpace) ; // 已用空间
+                    driveUsedSpace.Add(drive.Name, usedSpace);
+
                 }
             }
 
