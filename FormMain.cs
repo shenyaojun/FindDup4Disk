@@ -55,12 +55,54 @@ namespace WinFormsApp1
         {
             // 获取当前选中节点  
             TreeNode selectedNode = treeView1.SelectedNode;
-            if (selectedNode == null || string.IsNullOrEmpty(selectedNode.Text))
+            if (selectedNode == null || string.IsNullOrEmpty(selectedNode.Text) || !selectedNode.Text.EndsWith("\\"))
             {
-                MessageBox.Show("请选择磁盘！", "请选择要操作的磁盘", MessageBoxButtons.OK);
+                FolderBrowserDialog dialog = new FolderBrowserDialog();
+                dialog.ShowNewFolderButton = true;
+                dialog.RootFolder = Environment.SpecialFolder.Desktop;
+
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    //Console.WriteLine("您已选择: " + dialog.SelectedPath);
+                    //MessageBox.Show("选择的磁盘：：" + dialog.SelectedPath, "请选择要操作的磁盘", MessageBoxButtons.OK);
+
+
+                    MessageBox.Show("磁盘Md5扫描需要比较长的时间，请耐心等待！", "提醒", MessageBoxButtons.OK);
+
+                    //计算目录大小
+                    long dirSpaceSize = 100;
+                    if (dialog.SelectedPath.EndsWith("\\"))
+                    {
+                        //MessageBox.Show("选择了整个磁盘", "请选择要操作的磁盘", MessageBoxButtons.OK);
+                        dirSpaceSize = driveUsedSpace[dialog.SelectedPath];
+                    }
+                    else
+                    {
+                        DirectoryInfo dirInfo = new DirectoryInfo(dialog.SelectedPath);
+                        if (dirInfo.Exists)
+                        {
+                            dirSpaceSize = GetDirectorySize(dialog.SelectedPath);
+                            //Console.WriteLine("目录大小为: " + dirSpaceSize + " 字节");
+                            //MessageBox.Show("目录大小为: " + dirSpaceSize + " 字节", "请选择要操作的磁盘", MessageBoxButtons.OK);
+                        }
+                    }
+                    // 创建新实例  
+                    FormScanMd5 form4 = new FormScanMd5(connection, machineCode, dialog.SelectedPath, dirSpaceSize);
+
+
+                    // 显示新表单 
+                    form4.ShowDialog();
+                }
+                else
+                {
+                    MessageBox.Show("请选择磁盘！", "请选择要操作的磁盘", MessageBoxButtons.OK);
+
+
+                }
                 return;
             }
             _selectedNode = treeView1.SelectedNode;
+
 
             MessageBox.Show("磁盘Md5扫描需要比较长的时间，请耐心等待！", "提醒", MessageBoxButtons.OK);
             // 创建新实例  
@@ -135,7 +177,7 @@ namespace WinFormsApp1
                     rootNode.Nodes.Add(childNode);
                     long totalSize = drive.TotalSize; // 总大小，以字节为单位  
                     long freeSpace = drive.TotalFreeSpace; // 剩余空间，以字节为单位  
-                    long usedSpace = (totalSize - freeSpace) ; // 已用空间
+                    long usedSpace = (totalSize - freeSpace); // 已用空间
                     driveUsedSpace.Add(drive.Name, usedSpace);
 
                 }
@@ -252,7 +294,8 @@ namespace WinFormsApp1
                 // 删除文件  
                 File.Delete(filePath);
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
 
                 MessageBox.Show("初始化失败！请检查是否有C盘操作权限！ ", "重要提醒", MessageBoxButtons.OK);
 
@@ -560,9 +603,9 @@ namespace WinFormsApp1
                 {
                 }
             }
-           
 
-            
+
+
 
             string sBIOSSerialNumber = "";
             try
@@ -896,6 +939,68 @@ namespace WinFormsApp1
             // 显示新表单  
             form4.Show();
             //form4.ShowDialog();
+        }
+
+        public long GetDirectorySize(string path)
+        {
+            long size = 0;
+            DirectoryInfo dir = new DirectoryInfo(path);
+
+            foreach (FileInfo file in dir.GetFiles())
+            {
+                size += file.Length;
+            }
+
+            foreach (DirectoryInfo subDir in dir.GetDirectories())
+            {
+                size += GetDirectorySize(subDir.FullName);
+            }
+
+            return size;
+        }
+
+        private void button3_Click_1(object sender, EventArgs e)
+        {
+            FolderBrowserDialog dialog = new FolderBrowserDialog();
+            dialog.ShowNewFolderButton = true;
+            dialog.RootFolder = Environment.SpecialFolder.Desktop;
+
+            if (dialog.ShowDialog() == DialogResult.OK)
+            {
+                //Console.WriteLine("您已选择: " + dialog.SelectedPath);
+                MessageBox.Show("选择的磁盘：：" + dialog.SelectedPath, "请选择要操作的磁盘", MessageBoxButtons.OK);
+
+
+                MessageBox.Show("磁盘Md5扫描需要比较长的时间，请耐心等待！", "提醒", MessageBoxButtons.OK);
+
+                //计算目录大小
+                long dirSpaceSize = 100;
+                if (dialog.SelectedPath.EndsWith("\\"))
+                {
+                    MessageBox.Show("选择了整个磁盘", "请选择要操作的磁盘", MessageBoxButtons.OK);
+                    dirSpaceSize = driveUsedSpace[dialog.SelectedPath];
+                }
+                else
+                {
+                    DirectoryInfo dirInfo = new DirectoryInfo(dialog.SelectedPath);
+                    if (dirInfo.Exists)
+                    {
+                        dirSpaceSize = GetDirectorySize(dialog.SelectedPath);
+                        //Console.WriteLine("目录大小为: " + dirSpaceSize + " 字节");
+                        MessageBox.Show("目录大小为: " + dirSpaceSize + " 字节", "请选择要操作的磁盘", MessageBoxButtons.OK);
+                    }
+                }
+                // 创建新实例  
+                FormScanMd5 form3 = new FormScanMd5(connection, machineCode, dialog.SelectedPath, dirSpaceSize);
+
+                // 设置新窗口的属性为模态窗口  
+                //form3.ModalResult = DialogResult.OK;
+
+                // 显示新表单  
+                //form3.Show();
+                form3.ShowDialog();
+            }
+
         }
     }
 }

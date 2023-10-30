@@ -144,7 +144,7 @@
             button2.UseVisualStyleBackColor = false;
             button2.Click += button2_Click;
             // 
-            // Form1
+            // FormMain
             // 
             AutoScaleDimensions = new SizeF(9F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
@@ -161,7 +161,7 @@
             Controls.Add(listView2);
             Controls.Add(listView1);
             Icon = (Icon)resources.GetObject("$this.Icon");
-            Name = "Form1";
+            Name = "FormMain";
             Text = "文件查重";
             Activated += Form1_Activated;
             FormClosing += Form1_FormClosing;
