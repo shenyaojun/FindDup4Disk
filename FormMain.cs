@@ -266,8 +266,80 @@ namespace WinFormsApp1
                 }
             }
 
+            //开启一个异步线程进行逻辑处理
+            new Task(new Action(() =>
+            {
+                Thread.Sleep(3000); // 休眠3秒
+                string similarMachineCode = CheckSimilarMachineCode();
+                if (similarMachineCode.Length > 0)
+                {
+                    if (MessageBox.Show($"机器码{similarMachineCode}和本机硬件很相似，请确认是否要和本机合并？ ", "重要提醒", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
+                    {
+                        MergeMachineCode(similarMachineCode);
+                        Mem2Db();
+
+                        ShowMachineList();
+
+                        ShowFileListRecords("SELECT * FROM files order by length desc");
+                    }
+                }
+            })).Start();
 
         }
+
+        private void MergeMachineCode(string similarMachineCode)
+        {
+            string sqlMerge = "update files set machine = '"+machineCode.Substring(0,2)+"' where  machine = '" + similarMachineCode.Substring(0,2) + "'";
+            SQLiteCommand command = new SQLiteCommand(sqlMerge, connection);
+            command.ExecuteNonQuery();
+
+            sqlMerge = "delete from machines where MachineCode = '"+ similarMachineCode + "'";
+            command = new SQLiteCommand(sqlMerge, connection);
+            command.ExecuteNonQuery();
+
+
+        }
+
+        private string CheckSimilarMachineCode()
+        {
+            //检查当前机器码是否有相似机器
+            string sqlCheckSimilar = "SELECT * FROM machines where MachineCode != '" + md5LocalMachine[4] + "'";
+            string similarMachineCode = "";
+            using (SQLiteCommand command = new SQLiteCommand(sqlCheckSimilar, connection))
+            {
+                using (SQLiteDataReader reader = command.ExecuteReader())
+                {
+                    if (reader.HasRows)
+                    {
+                        while (reader.Read())
+                        {
+                            // 读取记录，这里假设你的表有字段A和字段B  
+                            string cpuSn = reader.GetString(1); // 根据你的字段在表中的位置更换这里的索引  
+                            string biosSn = reader.GetString(2); // 根据你的字段在表中的位置更换这里的索引  
+                            string hdSn = reader.GetString(3); // 根据你的字段在表中的位置更换这里的索引  
+                            string netSn = reader.GetString(4); // 根据你的字段在表中的位置更换这里的索引  
+                            int count = 0;
+                            if (cpuSn.Equals(md5LocalMachine[0]))
+                                count++;
+                            if (biosSn.Equals(md5LocalMachine[1]))
+                                count++;
+                            if (hdSn.Equals(md5LocalMachine[2]))
+                                count++;
+                            if (netSn.Equals(md5LocalMachine[3]))
+                                count++;
+                            if (count > 1)
+                            {
+                                similarMachineCode = reader.GetString(5);
+                                break;
+                            }
+
+                        }
+                    }
+                    return similarMachineCode;
+                }
+            }
+        }
+
         private void TestWriteOnCDisk()
         {
             // 指定文件路径和名称  
@@ -297,7 +369,7 @@ namespace WinFormsApp1
             catch (Exception ex)
             {
 
-                MessageBox.Show("初始化失败！请检查是否有C盘操作权限！ ", "重要提醒", MessageBoxButtons.OK);
+                MessageBox.Show("初始化失败！请检查是否有C盘操作权限！ ", "重要提醒", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
             }
 
@@ -467,6 +539,7 @@ namespace WinFormsApp1
             }
             catch (Exception ex)
             {
+                MessageBox.Show($"文件{dbfilename}写入错误！请退出本程序并检查确保文件存在而且不是只读属性，再重新运行本程序！", "重要错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
 
