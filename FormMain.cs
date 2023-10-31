@@ -261,7 +261,7 @@ namespace WinFormsApp1
                     }
                     catch (IOException ex)
                     {
-                        MessageBox.Show($"{dbfilename}初始化失败！请检查是否有C盘操作权限！ ", "重要提醒", MessageBoxButtons.OK);
+                        MessageBox.Show($"{dbfilename}初始化失败！请检查是否有C盘操作权限！ ", "重要提醒", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
             }
@@ -553,11 +553,11 @@ namespace WinFormsApp1
             TreeNode selectedNode = treeView1.SelectedNode;
             if (selectedNode == null || string.IsNullOrEmpty(selectedNode.Text))
             {
-                MessageBox.Show("请选择磁盘！", "请选择要操作的磁盘", MessageBoxButtons.OK);
+                MessageBox.Show("请选择磁盘！", "请选择要操作的磁盘", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             else
             {
-                MessageBox.Show("选择的磁盘：：" + selectedNode.Text, "请选择要操作的磁盘", MessageBoxButtons.OK);
+                MessageBox.Show("选择的磁盘：：" + selectedNode.Text, "请选择要操作的磁盘", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
 
             var records = new List<dynamic>();
@@ -641,7 +641,7 @@ namespace WinFormsApp1
             cnnIn.Close();
 
             connection.Close();
-            MessageBox.Show("Done！", "请选择要操作的磁盘", MessageBoxButtons.OK);
+            MessageBox.Show("Done！", "请选择要操作的磁盘", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
 
         }
@@ -915,14 +915,14 @@ namespace WinFormsApp1
             TreeNode selectedNode = treeView1.SelectedNode;
             if (selectedNode == null || string.IsNullOrEmpty(selectedNode.Text))
             {
-                MessageBox.Show("请选择磁盘！", "请选择要操作的磁盘", MessageBoxButtons.OK);
+                MessageBox.Show("请选择磁盘！", "请选择要操作的磁盘", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             else
             {
                 //MessageBox.Show("选择的磁盘：：" + selectedNode.Text, "请选择要操作的磁盘", MessageBoxButtons.OK);
             }
-            MessageBox.Show("磁盘查重需要一定时间，请耐心等待！", "提醒", MessageBoxButtons.OK);
+            MessageBox.Show("磁盘查重需要一定时间，请耐心等待！", "提醒", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             // 创建新实例  
             FormDup form2 = new FormDup(connection, machineCode, selectedNode.Text);
 
@@ -1032,48 +1032,5 @@ namespace WinFormsApp1
             return size;
         }
 
-        private void button3_Click_1(object sender, EventArgs e)
-        {
-            FolderBrowserDialog dialog = new FolderBrowserDialog();
-            dialog.ShowNewFolderButton = true;
-            dialog.RootFolder = Environment.SpecialFolder.Desktop;
-
-            if (dialog.ShowDialog() == DialogResult.OK)
-            {
-                //Console.WriteLine("您已选择: " + dialog.SelectedPath);
-                MessageBox.Show("选择的磁盘：：" + dialog.SelectedPath, "请选择要操作的磁盘", MessageBoxButtons.OK);
-
-
-                MessageBox.Show("磁盘Md5扫描需要比较长的时间，请耐心等待！", "提醒", MessageBoxButtons.OK);
-
-                //计算目录大小
-                long dirSpaceSize = 100;
-                if (dialog.SelectedPath.EndsWith("\\"))
-                {
-                    MessageBox.Show("选择了整个磁盘", "请选择要操作的磁盘", MessageBoxButtons.OK);
-                    dirSpaceSize = driveUsedSpace[dialog.SelectedPath];
-                }
-                else
-                {
-                    DirectoryInfo dirInfo = new DirectoryInfo(dialog.SelectedPath);
-                    if (dirInfo.Exists)
-                    {
-                        dirSpaceSize = GetDirectorySize(dialog.SelectedPath);
-                        //Console.WriteLine("目录大小为: " + dirSpaceSize + " 字节");
-                        MessageBox.Show("目录大小为: " + dirSpaceSize + " 字节", "请选择要操作的磁盘", MessageBoxButtons.OK);
-                    }
-                }
-                // 创建新实例  
-                FormScanMd5 form3 = new FormScanMd5(connection, machineCode, dialog.SelectedPath, dirSpaceSize);
-
-                // 设置新窗口的属性为模态窗口  
-                //form3.ModalResult = DialogResult.OK;
-
-                // 显示新表单  
-                //form3.Show();
-                form3.ShowDialog();
-            }
-
-        }
     }
 }
