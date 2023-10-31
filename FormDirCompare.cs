@@ -46,12 +46,12 @@ namespace FindDup4Disk
             dataGridView2.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
             dataGridView3.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
             String sqlCommand1 = "select a.Md5,a.machine||a.Filename amfile, b.machine||b.Filename bmfile, a.Length from "
-                + "(select * from files where machine = '"+compareAMc+"' and Filename  like '"+compareADir+"%') a,"
-                + "(select * from files  where machine = '"+compareBMc+ "' and Filename  like '"+compareBDir+"%') b "
+                + "(select * from files where machine = '" + compareAMc + "' and Filename  like '" + compareADir + "%') a,"
+                + "(select * from files  where machine = '" + compareBMc + "' and Filename  like '" + compareBDir + "%') b "
                 + "where a.Md5 = b.Md5 order by a.Length desc";
             ShowFileListRecords(sqlCommand1, dataGridView1);
             String sqlCommand2 = "select a.Md5,a.machine||a.Filename amfile, '' bmfile, a.Length from files a  "
-                + "where machine = '"+compareAMc+ "' and Filename  like  '"+compareADir+ "%' and Md5 in ("
+                + "where machine = '" + compareAMc + "' and Filename  like  '" + compareADir + "%' and Md5 in ("
                 + "select Md5 from files where machine = '" + compareAMc + "' and Filename  like '" + compareADir + "%' "
                 + "EXCEPT "
                 + "select Md5 from files where machine = '" + compareBMc + "' and Filename  like '" + compareBDir + "%') "
@@ -66,7 +66,7 @@ namespace FindDup4Disk
             ShowFileListRecords(sqlCommand3, dataGridView3);
         }
 
-        private void ShowFileListRecords(string sqlcommand,DataGridView dgv)
+        private void ShowFileListRecords(string sqlcommand, DataGridView dgv)
         {
             using (var command = new SQLiteCommand())
             {
