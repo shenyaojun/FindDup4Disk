@@ -42,6 +42,9 @@ namespace FindDup4Disk
             dataGridView1.ReadOnly = true;
             dataGridView2.ReadOnly = true;
             button2.Visible = false;
+
+            dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
+            dataGridView2.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
             StartScanning();
 
         }
@@ -66,7 +69,7 @@ namespace FindDup4Disk
         private void StartScanning()
         {
             //开启一个异步线程进行逻辑处理
-            new Task(new Action(() =>
+            Task.Run(() =>
             {
                 this.label1.Text = "start.....";
 
@@ -199,7 +202,7 @@ namespace FindDup4Disk
                 this.label1.Text = "end.....";
 
 
-            })).Start();
+            });
         }
 
 
@@ -402,8 +405,14 @@ namespace FindDup4Disk
                 return;
             }
             
-            MessageBox.Show(compareA, "缺少文件夹", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            MessageBox.Show(compareB, "缺少文件夹", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            //MessageBox.Show(compareA, "缺少文件夹", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            //MessageBox.Show(compareB, "缺少文件夹", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            // 创建新实例  
+            FormDirCompare formDC = new FormDirCompare(connection, machineCode, compareA, compareB);
+
+            // 显示新表单  
+            //form2.Show();
+            formDC.ShowDialog();
         }
     }
 }

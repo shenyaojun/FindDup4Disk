@@ -913,7 +913,7 @@ namespace WinFormsApp1
         {
             // 获取当前选中节点  
             TreeNode selectedNode = treeView1.SelectedNode;
-            if (selectedNode == null || string.IsNullOrEmpty(selectedNode.Text))
+            if (selectedNode == null || string.IsNullOrEmpty(selectedNode.Text) || !selectedNode.Text.EndsWith("\\"))
             {
                 MessageBox.Show("请从右边列表中选择要操作的磁盘！", "请选择要操作的磁盘", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
