@@ -39,6 +39,7 @@ namespace FindDup4Disk
         private void FormDirCompare_Load(object sender, EventArgs e)
         {
 
+            this.Text = "文件夹比较：" + compareA + " VS " + compareB;
             dataGridView1.ReadOnly = true;
             dataGridView2.ReadOnly = true;
             dataGridView3.ReadOnly = true;
