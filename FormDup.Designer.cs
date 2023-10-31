@@ -88,9 +88,9 @@
             dataGridView2.RowTemplate.Height = 29;
             dataGridView2.Size = new Size(1034, 202);
             dataGridView2.TabIndex = 6;
-            dataGridView2.MouseUp += dataGridView2_MouseUp;
+            dataGridView2.CellMouseUp += dataGridView2_CellMouseUp;
             // 
-            // Form2
+            // FormDup
             // 
             AutoScaleDimensions = new SizeF(9F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
@@ -101,7 +101,7 @@
             Controls.Add(label1);
             Controls.Add(button1);
             Icon = (Icon)resources.GetObject("$this.Icon");
-            Name = "Form2";
+            Name = "FormDup";
             Text = "Form2";
             Load += Form2_Load;
             ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();

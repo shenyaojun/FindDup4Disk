@@ -36,6 +36,8 @@ namespace FindDup4Disk
         {
 
             this.Text = "文件查重中，" + disk4Scan;
+            dataGridView1.ReadOnly = true;
+            dataGridView2.ReadOnly = true;
             StartScanning();
 
         }
@@ -71,9 +73,9 @@ namespace FindDup4Disk
 
                 //records = ReadDbAsRecord("SELECT * FROM files where Md5 in (select Md5 from files group by Md5 having count(1)> 1) order by Md5");
                 //优化SQL
-                records = ReadDbAsRecord("SELECT * FROM files where Md5 in (SELECT Md5 FROM files where Md5 in (select Md5 from files group by Md5 having count(1)> 1) and Filename like '"+ disk4Scan + "%' and machine = '"+ machineCode.Substring(0, 2) + "') order by Length desc");
+                records = ReadDbAsRecord("SELECT * FROM files where Md5 in (SELECT Md5 FROM files where Md5 in (select Md5 from files group by Md5 having count(1)> 1) and Filename like '" + disk4Scan + "%' and machine = '" + machineCode.Substring(0, 2) + "') order by Length desc");
 
-                
+
                 //records.Sort(((a, b) => a.Md5.CompareTo(b.Md5)));
 
                 Dictionary<string, string> dupDict = new Dictionary<string, string> { };
@@ -86,7 +88,7 @@ namespace FindDup4Disk
                 bool hasDup = false;
                 if (records.Count == 0)
                 {
-                    MessageBox.Show( "未发现重复文件，请确保查重之前已经进行MD5磁盘扫描！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("未发现重复文件，请确保查重之前已经进行MD5磁盘扫描！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
 
                 foreach (var record in records)
@@ -275,23 +277,12 @@ namespace FindDup4Disk
 
                     dataset.AcceptChanges();
 
-                    dataGridView2.DataSource = dataset.Tables[0];  
+                    dataGridView2.DataSource = dataset.Tables[0];
                 }
             }
         }
 
-        private void dataGridView2_MouseUp(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Right)
-            {
-                ContextMenuStrip menu = new ContextMenuStrip();
-
-                menu.Items.Add("Copy", null, CopyToClipboard);
-                menu.Items.Add("Paste", null, PasteFromClipboard);
-
-                menu.Show(dataGridView2, e.Location);
-            }
-        }
+    
         private void CopyToClipboard(object sender, EventArgs e)
         {
             // 将选定的行数据复制到剪贴板  
@@ -312,6 +303,49 @@ namespace FindDup4Disk
                     DataGridViewCell cell = dataGridView2.SelectedCells[0];
                     cell.Value = text;
                 }
+            }
+        }
+
+        private void dataGridView2_CellMouseUp(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+
+                ContextMenuStrip menu = new ContextMenuStrip();
+                dataGridView2.ClearSelection();
+
+                //dataGridView2.CurrentCell = null;
+
+                dataGridView2.Rows[e.RowIndex].Cells[e.ColumnIndex].Selected = true; 
+
+                menu.Items.Add("Copy", null, CopyToClipboard);
+                menu.Items.Add("Paste", null, PasteFromClipboard);
+                string[] dirArray = dataGridView2.Rows[e.RowIndex].Cells[1].Value.ToString().Split('\\');
+                
+
+                string dir = "";
+                int len = 0;
+                // 使用 foreach 循环遍历数组  
+                foreach (string s in dirArray)
+                {
+                    len++;
+                    if (dirArray.Length > len)
+                    {
+                        dir = dir + s + "\\";
+                        menu.Items.Add("文件夹对比："+dir, null, PasteFromClipboard);
+                    }
+                    
+                }
+
+               
+
+                // 获取选中的列  
+                DataGridViewCell selectedColumn = dataGridView2.SelectedCells[0].OwningRow.Cells[1];
+                menu.Show(MousePosition.X, MousePosition.Y);
+
+                // 输出列的名称  
+                //MessageBox.Show("选中的列名: " + dataGridView2.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString(), "处理", MessageBoxButtons.YesNo);
+
             }
         }
     }
