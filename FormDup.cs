@@ -84,6 +84,10 @@ namespace FindDup4Disk
                 String oldMachine = "";
                 bool needSave = false;
                 bool hasDup = false;
+                if (records.Count == 0)
+                {
+                    MessageBox.Show( "未发现重复文件，请确保查重之前已经进行MD5磁盘扫描！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
 
                 foreach (var record in records)
                 {
