@@ -915,7 +915,7 @@ namespace WinFormsApp1
             TreeNode selectedNode = treeView1.SelectedNode;
             if (selectedNode == null || string.IsNullOrEmpty(selectedNode.Text))
             {
-                MessageBox.Show("请选择磁盘！", "请选择要操作的磁盘", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("请从右边列表中选择要操作的磁盘！", "请选择要操作的磁盘", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             else

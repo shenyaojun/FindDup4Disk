@@ -24,6 +24,9 @@ namespace FindDup4Disk
         string machineCode;
         string disk4Scan;
 
+        string[] dirCompare = new string[2];
+        int dirCompareIndex = 0;
+
         public FormDup(SQLiteConnection connection, string machineCode, string disk4Scan)
         {
             InitializeComponent();
@@ -38,6 +41,7 @@ namespace FindDup4Disk
             this.Text = "文件查重中，" + disk4Scan;
             dataGridView1.ReadOnly = true;
             dataGridView2.ReadOnly = true;
+            button2.Visible = false;
             StartScanning();
 
         }
@@ -282,7 +286,7 @@ namespace FindDup4Disk
             }
         }
 
-    
+
         private void CopyToClipboard(object sender, EventArgs e)
         {
             // 将选定的行数据复制到剪贴板  
@@ -305,6 +309,32 @@ namespace FindDup4Disk
                 }
             }
         }
+        private void AddDirCompare(object sender, EventArgs e)
+        {
+
+            if (dirCompareIndex < 2)
+            {
+                dirCompare[dirCompareIndex] = sender.ToString();
+            }
+            else
+            {
+                dirCompare[dirCompareIndex % 2] = sender.ToString();
+            }
+
+            dirCompareIndex++;
+
+            this.label1.Text = "①" + dirCompare[0];
+            this.label1.ForeColor = Color.Red;
+
+            if (dirCompareIndex > 1)
+            {
+                button2.Visible = true;
+                this.label2.Text = "②" + dirCompare[1];
+                this.label2.ForeColor = Color.Red;
+            }
+
+
+        }
 
         private void dataGridView2_CellMouseUp(object sender, DataGridViewCellMouseEventArgs e)
         {
@@ -316,14 +346,15 @@ namespace FindDup4Disk
 
                 //dataGridView2.CurrentCell = null;
 
-                dataGridView2.Rows[e.RowIndex].Cells[e.ColumnIndex].Selected = true; 
+                dataGridView2.Rows[e.RowIndex].Cells[e.ColumnIndex].Selected = true;
 
                 menu.Items.Add("Copy", null, CopyToClipboard);
-                menu.Items.Add("Paste", null, PasteFromClipboard);
+                //menu.Items.Add("Paste", null, PasteFromClipboard);
                 string[] dirArray = dataGridView2.Rows[e.RowIndex].Cells[1].Value.ToString().Split('\\');
-                
+                string mc = dataGridView2.Rows[e.RowIndex].Cells[0].Value.ToString();
 
-                string dir = "";
+
+                string dir = mc + "*";
                 int len = 0;
                 // 使用 foreach 循环遍历数组  
                 foreach (string s in dirArray)
@@ -332,12 +363,12 @@ namespace FindDup4Disk
                     if (dirArray.Length > len)
                     {
                         dir = dir + s + "\\";
-                        menu.Items.Add("文件夹对比："+dir, null, PasteFromClipboard);
+                        menu.Items.Add("文件夹对比：" + dir, null, AddDirCompare);
                     }
-                    
+
                 }
 
-               
+
 
                 // 获取选中的列  
                 DataGridViewCell selectedColumn = dataGridView2.SelectedCells[0].OwningRow.Cells[1];
@@ -347,6 +378,32 @@ namespace FindDup4Disk
                 //MessageBox.Show("选中的列名: " + dataGridView2.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString(), "处理", MessageBoxButtons.YesNo);
 
             }
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            //检查确定两个文件夹都已经选择好
+            if (dirCompareIndex < 1)
+            {
+                MessageBox.Show("请选择好两个文件夹！本功能只对两个文件夹进行比较！ ", "缺少文件夹", MessageBoxButtons.OK,MessageBoxIcon.Error);
+                return;
+            }
+            if (dirCompare[0] == dirCompare[1])
+            {
+                MessageBox.Show("两个文件夹相同，无法进行比较！ ", "缺少文件夹", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            string compareA = dirCompare[0].Split("：")[1];
+            string compareB = dirCompare[1].Split("：")[1];
+
+            if (compareA.StartsWith(compareB) || compareB.StartsWith(compareA))
+            {
+                MessageBox.Show("两个文件夹为包含关系，无法进行比较！ ", "缺少文件夹", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            
+            MessageBox.Show(compareA, "缺少文件夹", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(compareB, "缺少文件夹", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 }

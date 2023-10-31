@@ -34,6 +34,7 @@
             label2 = new Label();
             dataGridView1 = new DataGridView();
             dataGridView2 = new DataGridView();
+            button2 = new Button();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dataGridView2).BeginInit();
             SuspendLayout();
@@ -90,11 +91,25 @@
             dataGridView2.TabIndex = 6;
             dataGridView2.CellMouseUp += dataGridView2_CellMouseUp;
             // 
+            // button2
+            // 
+            button2.BackColor = Color.Khaki;
+            button2.Font = new Font("宋体", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            button2.ForeColor = Color.Blue;
+            button2.Location = new Point(872, 581);
+            button2.Name = "button2";
+            button2.Size = new Size(251, 76);
+            button2.TabIndex = 7;
+            button2.Text = "文件夹对比";
+            button2.UseVisualStyleBackColor = false;
+            button2.Click += button2_Click;
+            // 
             // FormDup
             // 
             AutoScaleDimensions = new SizeF(9F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1225, 699);
+            Controls.Add(button2);
             Controls.Add(dataGridView2);
             Controls.Add(dataGridView1);
             Controls.Add(label2);
@@ -117,5 +132,6 @@
         private Label label2;
         private DataGridView dataGridView1;
         private DataGridView dataGridView2;
+        private Button button2;
     }
 }
