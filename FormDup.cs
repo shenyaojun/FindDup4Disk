@@ -321,6 +321,15 @@ namespace FindDup4Disk
                 }
             }
         }
+        private void DeleteFile(object sender, EventArgs e)
+        {
+            string fileName = sender.ToString();
+            if (fileName != null)
+            {
+                fileName = fileName.Split('：')[1];
+                MessageBox.Show(fileName, "message",MessageBoxButtons.OK);
+            }
+        }
         private void AddDirCompare(object sender, EventArgs e)
         {
 
@@ -368,6 +377,11 @@ namespace FindDup4Disk
                     return;
                 string[] dirArray = dataGridView2.Rows[e.RowIndex].Cells[1].Value.ToString().Split('\\');
                 string mc = dataGridView2.Rows[e.RowIndex].Cells[0].Value.ToString();
+
+                if (machineCode.StartsWith(mc))
+                {
+                    menu.Items.Add("删除：" + dataGridView2.Rows[e.RowIndex].Cells[1].Value.ToString(), null, DeleteFile);
+                }
 
 
                 string dir = mc + "*";
