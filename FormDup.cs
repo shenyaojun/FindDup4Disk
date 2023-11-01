@@ -8,6 +8,7 @@ using System.Data.SQLite;
 using System.Drawing;
 using System.Dynamic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Text;
@@ -24,6 +25,7 @@ namespace FindDup4Disk
         bool isRunning = false;
         string machineCode;
         string disk4Scan;
+        DataGridViewRow selectedRow;
 
         string[] dirCompare = new string[2];
         int dirCompareIndex = 0;
@@ -256,6 +258,7 @@ namespace FindDup4Disk
             if (e.RowIndex > -1)
 
             {
+                selectedRow = dataGridView1.Rows[e.RowIndex];
                 string md5 = dataGridView1.Rows[e.RowIndex].Cells["MD5"].Value.ToString();
                 //MessageBox.Show("选择的磁盘：：" + mc, "请选择要操作的磁盘", MessageBoxButtons.OK);
 
@@ -327,7 +330,42 @@ namespace FindDup4Disk
             if (fileName != null)
             {
                 fileName = fileName.Split('：')[1];
-                MessageBox.Show(fileName, "message",MessageBoxButtons.OK);
+                string message = "此文件将被从硬盘直接删除，此操作不可撤回，确定吗？" + fileName;
+                if (MessageBox.Show(message, "重要提醒", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) != DialogResult.OK)
+                {
+                    return;
+                }
+                //文件系统删除
+                try
+                {
+                    if (File.Exists(fileName))
+                    {
+                        File.Delete(fileName);
+                        Console.WriteLine("文件已删除");
+                    }
+                    else
+                    {
+                        Console.WriteLine("文件不存在");
+                    }
+                }
+                catch (Exception ex1)
+                {
+                    MessageBox.Show("文件删除失败！请手工操作！", "重要提醒", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+                
+                //数据库删除
+                string sql = "delete from files where Filename = '"+ fileName + "' and machine = '"+ machineCode.Substring(0,2)+"'";
+                SQLiteCommand command = new SQLiteCommand(sql, connection);
+                command.ExecuteNonQuery();
+                MessageBox.Show("文件已成功删除！", "重要提醒", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+
+                
+                string md5 = selectedRow.Cells["MD5"].Value.ToString();
+                //MessageBox.Show("选择的磁盘：：" + mc, "请选择要操作的磁盘", MessageBoxButtons.OK);
+
+                ShowFileListRecords("SELECT * FROM files where Md5 ='" + md5 + "' order by machine, Filename ");
+
             }
         }
         private void AddDirCompare(object sender, EventArgs e)
