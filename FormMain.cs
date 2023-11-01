@@ -948,7 +948,7 @@ namespace WinFormsApp1
         private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
             // 检查是否在同一行的Field1字段中  
-            if (e.RowIndex >= 0 && e.ColumnIndex == 0) // 根据你的需要改变这个索引  
+            if (e.RowIndex >= 0 && e.ColumnIndex == 0 && dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value != null) // 根据你的需要改变这个索引  
             {
                 // 获取当前单元格的值  
                 string value = "";

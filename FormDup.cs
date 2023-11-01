@@ -1,4 +1,5 @@
 ﻿using CsvHelper;
+using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -30,6 +31,10 @@ namespace FindDup4Disk
         public FormDup(SQLiteConnection connection, string machineCode, string disk4Scan)
         {
             InitializeComponent();
+
+            //取消跨线程访问（此为不安全操作)**
+            Control.CheckForIllegalCrossThreadCalls = false;
+
             this.connection = connection;
             this.machineCode = machineCode;
             this.disk4Scan = disk4Scan;
@@ -43,9 +48,13 @@ namespace FindDup4Disk
             dataGridView2.ReadOnly = true;
             button2.Visible = false;
 
-            dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
+            //dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
             dataGridView2.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
+            // Set cursor as hourglass
+            Cursor.Current = Cursors.WaitCursor;
             StartScanning();
+            // Set cursor as default arrow
+            Cursor.Current = Cursors.Default;
 
         }
 
@@ -69,140 +78,140 @@ namespace FindDup4Disk
         private void StartScanning()
         {
             //开启一个异步线程进行逻辑处理
-            Task.Run(() =>
+            //Task.Run(() =>
+            //{
+            //this.label1.Text = "start.....";
+
+
+            var records = new List<dynamic>();
+
+            //读取csv文件，已处理的
+
+            //records = ReadDbAsRecord("SELECT * FROM files where Md5 in (select Md5 from files group by Md5 having count(1)> 1) order by Md5");
+            //优化SQL
+            records = ReadDbAsRecord("SELECT * FROM files where Md5 in (SELECT Md5 FROM files where Md5 in (select Md5 from files group by Md5 having count(1)> 1) and Filename like '" + disk4Scan + "%' and machine = '" + machineCode.Substring(0, 2) + "') order by Length desc");
+
+
+            //records.Sort(((a, b) => a.Md5.CompareTo(b.Md5)));
+
+            Dictionary<string, string> dupDict = new Dictionary<string, string> { };
+            Dictionary<string, string> lengthDict = new Dictionary<string, string> { };
+
+            String oldMd5 = "";
+            String oldFilename = "";
+            String oldMachine = "";
+            bool needSave = false;
+            bool hasDup = false;
+            if (records.Count == 0)
             {
-                this.label1.Text = "start.....";
+                MessageBox.Show("未发现重复文件，请确保查重之前已经进行MD5磁盘扫描！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
 
-
-                var records = new List<dynamic>();
-
-                //读取csv文件，已处理的
-
-                //records = ReadDbAsRecord("SELECT * FROM files where Md5 in (select Md5 from files group by Md5 having count(1)> 1) order by Md5");
-                //优化SQL
-                records = ReadDbAsRecord("SELECT * FROM files where Md5 in (SELECT Md5 FROM files where Md5 in (select Md5 from files group by Md5 having count(1)> 1) and Filename like '" + disk4Scan + "%' and machine = '" + machineCode.Substring(0, 2) + "') order by Length desc");
-
-
-                //records.Sort(((a, b) => a.Md5.CompareTo(b.Md5)));
-
-                Dictionary<string, string> dupDict = new Dictionary<string, string> { };
-                Dictionary<string, string> lengthDict = new Dictionary<string, string> { };
-
-                String oldMd5 = "";
-                String oldFilename = "";
-                String oldMachine = "";
-                bool needSave = false;
-                bool hasDup = false;
-                if (records.Count == 0)
+            foreach (var record in records)
+            {
+                //this.label1.Text = record.Filename;
+                //MessageBox.Show(record.Filename + ":::" , "处理", MessageBoxButtons.YesNo);
+                string md5 = record.Md5;
+                try
                 {
-                    MessageBox.Show("未发现重复文件，请确保查重之前已经进行MD5磁盘扫描！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    lengthDict.Add(md5, record.Length.ToString());
+                }
+                catch (Exception ex)
+                {
+
                 }
 
-                foreach (var record in records)
+
+                if (md5 == oldMd5)
                 {
-                    this.label1.Text = record.Filename;
-                    //MessageBox.Show(record.Filename + ":::" , "处理", MessageBoxButtons.YesNo);
-                    string md5 = record.Md5;
-                    try
-                    {
-                        lengthDict.Add(md5, record.Length.ToString());
-                    }
-                    catch (Exception ex)
-                    {
+                    //发现重复文件
 
+                    hasDup = true;
+                    if ((record.Filename.StartsWith(disk4Scan) && record.machine == machineCode.Substring(0, 2)) || (oldFilename.StartsWith(disk4Scan) && oldMachine == machineCode))
+                    {
+                        needSave = true;
                     }
 
-
-                    if (md5 == oldMd5)
+                    if (!dupDict.ContainsKey(md5))
                     {
-                        //发现重复文件
-
-                        hasDup = true;
-                        if ((record.Filename.StartsWith(disk4Scan) && record.machine == machineCode.Substring(0, 2)) || (oldFilename.StartsWith(disk4Scan) && oldMachine == machineCode))
-                        {
-                            needSave = true;
-                        }
-
-                        if (!dupDict.ContainsKey(md5))
-                        {
-                            this.label2.Text = record.machine.Substring(0, 2) + "." + record.Filename;
-                            dupDict.Add(md5, record.machine.Substring(0, 2) + "." + record.Filename + "; " + oldMachine.Substring(0, 2) + "." + oldFilename);
-
-                        }
-                        else
-                        {
-                            this.label2.Text = record.machine.Substring(0, 2) + "*" + record.Filename;
-                            String old = dupDict.GetValueOrDefault(md5) + "";
-                            dupDict.Remove(md5);
-                            dupDict.Add(md5, record.machine.Substring(0, 2) + "." + record.Filename + "; " + old);
-                        }
+                        //this.label2.Text = record.machine.Substring(0, 2) + "." + record.Filename;
+                        dupDict.Add(md5, record.machine.Substring(0, 2) + "." + record.Filename + "; " + oldMachine.Substring(0, 2) + "." + oldFilename);
 
                     }
                     else
                     {
-                        //发现新md5
-                        if (!needSave && hasDup)
-                        {
-                            try
-                            {
-                                dupDict.Remove(oldMd5);
-                            }
-                            catch (Exception e)
-                            {
-
-                            }
-
-                        }
-                        oldFilename = record.Filename;
-                        oldMd5 = record.Md5;
-                        oldMachine = record.machine;
-                        needSave = false;
-                        hasDup = false;
-
+                        //this.label2.Text = record.machine.Substring(0, 2) + "*" + record.Filename;
+                        String old = dupDict.GetValueOrDefault(md5) + "";
+                        dupDict.Remove(md5);
+                        dupDict.Add(md5, record.machine.Substring(0, 2) + "." + record.Filename + "; " + old);
                     }
 
                 }
-                this.label1.Text = "end scanning.....";
-                var recordsSave = new List<dynamic>();
-
-                var dataset = new DataSet("dupfiles");
-                var table = new DataTable("dupfiles");
-                table.Columns.Add("MD5", typeof(string));
-                table.Columns.Add("大小", typeof(Int64));
-                table.Columns.Add("文件", typeof(string));
-                dataset.Tables.Add(table);
-
-                foreach (KeyValuePair<string, string> item in dupDict)
+                else
                 {
+                    //发现新md5
+                    if (!needSave && hasDup)
+                    {
+                        try
+                        {
+                            dupDict.Remove(oldMd5);
+                        }
+                        catch (Exception e)
+                        {
 
+                        }
 
-                    string slength = lengthDict.GetValueOrDefault(item.Key);
-
-                    dynamic record = new ExpandoObject();
-                    record.Md5 = item.Key;
-                    record.Length = slength;
-                    record.Filename = item.Value;
-                    recordsSave.Add(record);
-                    var row = table.NewRow();
-                    row["MD5"] = item.Key;
-                    row["大小"] = slength;
-                    row["文件"] = item.Value;
-                    table.Rows.Add(row);
-
+                    }
+                    oldFilename = record.Filename;
+                    oldMd5 = record.Md5;
+                    oldMachine = record.machine;
+                    needSave = false;
+                    hasDup = false;
 
                 }
 
-                dataset.AcceptChanges();
+            }
+            //this.label1.Text = "end scanning.....";
+            var recordsSave = new List<dynamic>();
 
-                dataGridView1.DataSource = dataset.Tables[0];  // Assuming the DataGridView control is named dataGridView1
+            var dataset = new DataSet("dupfiles");
+            var table = new DataTable("dupfiles");
+            table.Columns.Add("MD5", typeof(string));
+            table.Columns.Add("大小", typeof(Int64));
+            table.Columns.Add("文件", typeof(string));
+            dataset.Tables.Add(table);
 
-                //this.listView2.Sort(this.listView2.Columns["大小"], ListSortDirection.Ascending);
-
-                SaveCsv(recordsSave, "C:\\duplicatefiles" + disk4Scan.Substring(0, 1) + ".csv");
-                this.label1.Text = "end.....";
+            foreach (KeyValuePair<string, string> item in dupDict)
+            {
 
 
-            });
+                string slength = lengthDict.GetValueOrDefault(item.Key);
+
+                dynamic record = new ExpandoObject();
+                record.Md5 = item.Key;
+                record.Length = slength;
+                record.Filename = item.Value;
+                recordsSave.Add(record);
+                var row = table.NewRow();
+                row["MD5"] = item.Key;
+                row["大小"] = slength;
+                row["文件"] = item.Value;
+                table.Rows.Add(row);
+
+
+            }
+
+            dataset.AcceptChanges();
+
+            dataGridView1.DataSource = dataset.Tables[0];  // Assuming the DataGridView control is named dataGridView1
+
+            //this.listView2.Sort(this.listView2.Columns["大小"], ListSortDirection.Ascending);
+
+            SaveCsv(recordsSave, "C:\\duplicatefiles" + disk4Scan.Substring(0, 1) + ".csv");
+            //this.label1.Text = "end.....";
+
+
+            //});
         }
 
 
@@ -339,9 +348,10 @@ namespace FindDup4Disk
 
         }
 
-        private void dataGridView2_CellMouseUp(object sender, DataGridViewCellMouseEventArgs e)
+        private void dataGridView2_CellMouseClick(object sender, DataGridViewCellMouseEventArgs e)
         {
-            if (e.Button == MouseButtons.Right)
+
+            if (e.Button == MouseButtons.Right && e.RowIndex >= 0 && e.ColumnIndex >= 0)
             {
 
                 ContextMenuStrip menu = new ContextMenuStrip();
@@ -353,6 +363,9 @@ namespace FindDup4Disk
 
                 menu.Items.Add("Copy", null, CopyToClipboard);
                 //menu.Items.Add("Paste", null, PasteFromClipboard);
+
+                if (dataGridView2.Rows[e.RowIndex].Cells[1].Value == null || dataGridView2.Rows[e.RowIndex].Cells[0] == null)
+                    return;
                 string[] dirArray = dataGridView2.Rows[e.RowIndex].Cells[1].Value.ToString().Split('\\');
                 string mc = dataGridView2.Rows[e.RowIndex].Cells[0].Value.ToString();
 
@@ -369,18 +382,19 @@ namespace FindDup4Disk
                         menu.Items.Add("文件夹对比：" + dir, null, AddDirCompare);
                     }
 
+                    if (len > 5) break;
+
                 }
 
 
 
-                // 获取选中的列  
-                DataGridViewCell selectedColumn = dataGridView2.SelectedCells[0].OwningRow.Cells[1];
-                menu.Show(MousePosition.X, MousePosition.Y);
+                menu.Show(Cursor.Position);
 
                 // 输出列的名称  
                 //MessageBox.Show("选中的列名: " + dataGridView2.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString(), "处理", MessageBoxButtons.YesNo);
 
             }
+
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -388,7 +402,7 @@ namespace FindDup4Disk
             //检查确定两个文件夹都已经选择好
             if (dirCompareIndex < 1)
             {
-                MessageBox.Show("请选择好两个文件夹！本功能只对两个文件夹进行比较！ ", "缺少文件夹", MessageBoxButtons.OK,MessageBoxIcon.Error);
+                MessageBox.Show("请选择好两个文件夹！本功能只对两个文件夹进行比较！ ", "缺少文件夹", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             if (dirCompare[0] == dirCompare[1])
@@ -404,7 +418,7 @@ namespace FindDup4Disk
                 MessageBox.Show("两个文件夹为包含关系，无法进行比较！ ", "缺少文件夹", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            
+
             //MessageBox.Show(compareA, "缺少文件夹", MessageBoxButtons.OK, MessageBoxIcon.Error);
             //MessageBox.Show(compareB, "缺少文件夹", MessageBoxButtons.OK, MessageBoxIcon.Error);
             // 创建新实例  
