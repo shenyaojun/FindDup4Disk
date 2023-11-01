@@ -33,7 +33,7 @@ namespace FindDup4Disk
             InitializeComponent();
 
             //取消跨线程访问（此为不安全操作)**
-            Control.CheckForIllegalCrossThreadCalls = false;
+            //Control.CheckForIllegalCrossThreadCalls = false;
 
             this.connection = connection;
             this.machineCode = machineCode;
