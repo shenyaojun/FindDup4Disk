@@ -41,16 +41,24 @@ namespace FindDup4Disk
         {
 
             this.Text = "文件夹比较：" + compareA + " VS " + compareB;
+            this.richTextBox1.Text = compareA;
+            this.richTextBox2.Text = compareB;
+
             dataGridView1.ReadOnly = true;
             dataGridView2.ReadOnly = true;
             dataGridView3.ReadOnly = true;
             dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
             dataGridView2.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
             dataGridView3.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
+            RefreshGridShow();
+        }
+
+        private void RefreshGridShow()
+        {
             String sqlCommand1 = "select a.Md5,a.machine||a.Filename amfile, b.machine||b.Filename bmfile, a.Length from "
-                + "(select * from files where machine = '" + compareAMc + "' and Filename  like '" + compareADir + "%') a,"
-                + "(select * from files  where machine = '" + compareBMc + "' and Filename  like '" + compareBDir + "%') b "
-                + "where a.Md5 = b.Md5 order by a.Length desc";
+                            + "(select * from files where machine = '" + compareAMc + "' and Filename  like '" + compareADir + "%') a,"
+                            + "(select * from files  where machine = '" + compareBMc + "' and Filename  like '" + compareBDir + "%') b "
+                            + "where a.Md5 = b.Md5 order by a.Length desc";
             ShowFileListRecords(sqlCommand1, dataGridView1);
             String sqlCommand2 = "select a.Md5,a.machine||a.Filename amfile, '' bmfile, a.Length from files a  "
                 + "where machine = '" + compareAMc + "' and Filename  like  '" + compareADir + "%' and Md5 in ("
@@ -105,7 +113,11 @@ namespace FindDup4Disk
         private void button1_Click(object sender, EventArgs e)
         {
 
+            // Set cursor as hourglass
+            Cursor.Current = Cursors.WaitCursor;
             DeleteDir(compareAMc, compareADir, compareBMc, compareBDir);
+            // Set cursor as default arrow
+            Cursor.Current = Cursors.Default;
         }
 
         private void DeleteDir(string deleteMc, string deleteDir, string otherMc, string otherDir)
@@ -160,6 +172,7 @@ namespace FindDup4Disk
                                 catch (Exception ex1)
                                 {
                                     MessageBox.Show("文件删除失败！请手工操作！", "重要提醒", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                    RefreshGridShow();
                                     return;
                                 }
                             }
@@ -198,14 +211,24 @@ namespace FindDup4Disk
                     }
 
                 }
-
+                else
+                {
+                    MessageBox.Show("目录清除成功！", "重要提醒", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+                RefreshGridShow();
 
             }
         }
 
         private void button2_Click(object sender, EventArgs e)
         {
-            DeleteDir(compareBMc, compareBDir,compareAMc, compareADir);
+
+            // Set cursor as hourglass
+            Cursor.Current = Cursors.WaitCursor;
+            DeleteDir(compareBMc, compareBDir, compareAMc, compareADir);
+            // Set cursor as default arrow
+            Cursor.Current = Cursors.Default;
         }
+
     }
 }
