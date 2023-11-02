@@ -43,6 +43,21 @@ namespace FindDup4Disk
             this.Text = "文件夹比较：" + compareA + " VS " + compareB;
             this.richTextBox1.Text = compareA;
             this.richTextBox2.Text = compareB;
+            this.richTextBox1.ReadOnly = true;
+            this.richTextBox2.ReadOnly = true;
+
+            //richTextBox1.BackColor = Color.Transparent;
+            richTextBox1.ForeColor = Color.Black;
+            richTextBox1.BorderStyle = BorderStyle.None;
+            //richTextBox2.BackColor = System.Drawing.Color.Transparent;
+            richTextBox2.ForeColor = Color.Black;
+            richTextBox2.BorderStyle = BorderStyle.None;
+
+            if (compareAMc.Equals(machineCode.Substring(0, 2)))
+                this.button1.Text = this.button1.Text + "（本机）";
+
+            if (compareBMc.Equals(machineCode.Substring(0, 2)))
+                this.button2.Text = this.button2.Text + "（本机）";
 
             dataGridView1.ReadOnly = true;
             dataGridView2.ReadOnly = true;
