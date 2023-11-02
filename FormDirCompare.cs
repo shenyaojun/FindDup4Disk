@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Button;
 
 namespace FindDup4Disk
 {
@@ -99,6 +100,112 @@ namespace FindDup4Disk
                     dgv.DataSource = dataset.Tables[0];
                 }
             }
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+
+            DeleteDir(compareAMc, compareADir, compareBMc, compareBDir);
+        }
+
+        private void DeleteDir(string deleteMc, string deleteDir, string otherMc, string otherDir)
+        {
+            bool deleteAll = false;
+
+            if (rbAll.Checked)
+            {
+                deleteAll = true;
+            }
+
+            if (!deleteMc.Equals(machineCode.Substring(0, 2)))
+            {
+                MessageBox.Show("不是本机目录，无法删除！", "重要提醒", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning);
+                return;
+            }
+            if (deleteDir != null)
+            {
+                string message = "符合规则的文件将被从硬盘直接删除，此操作不可撤回，确定吗？" + deleteDir;
+                if (MessageBox.Show(message, "重要提醒", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) != DialogResult.OK)
+                {
+                    return;
+                }
+                string sqlSelect = "SELECT Filename FROM files where machine = '" + deleteMc + "' and Filename like '" + deleteDir + "%'";
+                if (!deleteAll)
+                    sqlSelect = sqlSelect + $" and Md5 in (select Md5 from files where machine = '{otherMc}' and Filename like '{otherDir}%')"; // 选择你的表中的第一条记录  
+
+                using (SQLiteCommand commandSelect = new SQLiteCommand(sqlSelect, connection))
+                {
+                    using (SQLiteDataReader reader = commandSelect.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            while (reader.Read())
+                            {
+                                // 读取记录，这里假设你的表有字段A和字段B  
+                                string fileNameDelete = reader.GetString(0); // 根据你的字段在表中的位置更换这里的索引  
+
+                                //文件系统删除各个文件
+                                try
+                                {
+                                    if (File.Exists(fileNameDelete))
+                                    {
+                                        File.Delete(fileNameDelete);
+                                        Console.WriteLine("文件已删除");
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("文件不存在");
+                                    }
+                                }
+                                catch (Exception ex1)
+                                {
+                                    MessageBox.Show("文件删除失败！请手工操作！", "重要提醒", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+
+
+
+                //数据库删除
+                string sql = "delete FROM files where machine = '" + deleteMc + "' and Filename like '" + deleteDir + "%'";
+                if (!deleteAll)
+                    sql = sql + $" and Md5 in (select Md5 from files where machine = '{otherMc}' and Filename like '{otherDir}%')";
+                SQLiteCommand command = new SQLiteCommand(sql, connection);
+                command.ExecuteNonQuery();
+                if (deleteAll)
+                {
+                    //删除整个目录
+                    try
+                    {
+                        if (Directory.Exists(deleteDir))
+                        {
+                            Directory.Delete(deleteDir, true); // 第二个参数为true表示删除目录及其所有子目录和文件  
+                            Console.WriteLine($"{deleteDir} 已被删除。");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"{deleteDir} 不存在。");
+                        }
+
+                        MessageBox.Show("目录清除成功！", "重要提醒", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("文件已经删除，但删除目录失败！请检查一下相关目录。", "重要提醒", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
+
+                }
+
+
+            }
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            DeleteDir(compareBMc, compareBDir,compareAMc, compareADir);
         }
     }
 }
