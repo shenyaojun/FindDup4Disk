@@ -144,9 +144,14 @@ namespace FindDup4Disk
                 deleteAll = true;
             }
 
+            if (deleteAll && deleteDir.Length < 4) 
+            {
+                MessageBox.Show("无法删除整个磁盘！", "重要提醒", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
             if (!deleteMc.Equals(machineCode.Substring(0, 2)))
             {
-                MessageBox.Show("不是本机目录，无法删除！", "重要提醒", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning);
+                MessageBox.Show("不是本机目录，无法删除！", "重要提醒", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             if (deleteDir != null)
