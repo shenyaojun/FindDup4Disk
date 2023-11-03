@@ -26,55 +26,75 @@ namespace FindDup4Disk
 
         public FormDirCompare(SQLiteConnection connection, string machineCode, string compareA, string compareB)
         {
+            // 初始化组件
             InitializeComponent();
+            // 设置连接
             this.connection = connection;
+            // 设置机器码
             this.machineCode = machineCode;
+            // 设置比较A
             this.compareA = compareA;
+            // 设置比较B
             this.compareB = compareB;
+            // 获取比较A的目录
             this.compareADir = compareA.Split("*")[1];
+            // 获取比较A的机器码
             this.compareAMc = compareA.Split("*")[0];
+            // 获取比较B的目录
             this.compareBDir = compareB.Split("*")[1];
+            // 获取比较B的机器码
             this.compareBMc = compareB.Split("*")[0];
         }
 
         private void FormDirCompare_Load(object sender, EventArgs e)
         {
-
             this.Text = "文件夹比较：" + compareA + " VS " + compareB;
             this.richTextBox1.Text = compareA;
             this.richTextBox2.Text = compareB;
             this.richTextBox1.ReadOnly = true;
             this.richTextBox2.ReadOnly = true;
 
-            //richTextBox1.BackColor = Color.Transparent;
+            // 设置richTextBox1为透明色，并设置前景色为黑色，边框样式为无
             richTextBox1.ForeColor = Color.Black;
             richTextBox1.BorderStyle = BorderStyle.None;
-            //richTextBox2.BackColor = System.Drawing.Color.Transparent;
+
+            // 设置richTextBox2为透明色，并设置前景色为黑色，边框样式为无
             richTextBox2.ForeColor = Color.Black;
             richTextBox2.BorderStyle = BorderStyle.None;
 
+            // 如果compareAMc与machineCode的前两个字符相等，则在按钮1的文本后添加"（本机）”
             if (compareAMc.Equals(machineCode.Substring(0, 2)))
                 this.button1.Text = this.button1.Text + "（本机）";
 
+            // 如果compareBMc与machineCode的前两个字符相等，则在按钮2的文本后添加"（本机）”
             if (compareBMc.Equals(machineCode.Substring(0, 2)))
                 this.button2.Text = this.button2.Text + "（本机）";
 
+            // 设置dataGridView1、dataGridView2和dataGridView3为只读状态
             dataGridView1.ReadOnly = true;
             dataGridView2.ReadOnly = true;
             dataGridView3.ReadOnly = true;
+
+            // 设置dataGridView1、dataGridView2和dataGridView3的列自动调整为填充整个列
             dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
             dataGridView2.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
             dataGridView3.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
+
+            // 刷新显示
             RefreshGridShow();
         }
 
         private void RefreshGridShow()
         {
+            // 查询两个机器中相同MD5值的文件，按照文件长度从大到小排序
             String sqlCommand1 = "select a.Md5,a.machine||a.Filename amfile, b.machine||b.Filename bmfile, a.Length from "
                             + "(select * from files where machine = '" + compareAMc + "' and Filename  like '" + compareADir + "%') a,"
                             + "(select * from files  where machine = '" + compareBMc + "' and Filename  like '" + compareBDir + "%') b "
                             + "where a.Md5 = b.Md5 order by a.Length desc";
             ShowFileListRecords(sqlCommand1, dataGridView1);
+
+            // 查询机器A中相同MD5值的文件与机器B中相同MD5值的文件对比，列出机器A中不存在于机器B中的文件，并按照文件长度从大到小排序
+
             String sqlCommand2 = "select a.Md5,a.machine||a.Filename amfile, '' bmfile, a.Length from files a  "
                 + "where machine = '" + compareAMc + "' and Filename  like  '" + compareADir + "%' and Md5 in ("
                 + "select Md5 from files where machine = '" + compareAMc + "' and Filename  like '" + compareADir + "%' "
@@ -82,6 +102,8 @@ namespace FindDup4Disk
                 + "select Md5 from files where machine = '" + compareBMc + "' and Filename  like '" + compareBDir + "%') "
                 + "order by Length desc";
             ShowFileListRecords(sqlCommand2, dataGridView2);
+
+            // 查询机器B中相同MD5值的文件与机器A中相同MD5值的文件对比，列出机器B中不存在于机器A中
             String sqlCommand3 = "select a.Md5,'' amfile, a.machine||a.Filename bmfile, a.Length from files a  "
                 + "where machine = '" + compareBMc + "' and Filename  like  '" + compareBDir + "%' and Md5 in ("
                 + "select Md5 from files where machine = '" + compareBMc + "' and Filename  like '" + compareBDir + "%' "
@@ -93,33 +115,47 @@ namespace FindDup4Disk
 
         private void ShowFileListRecords(string sqlcommand, DataGridView dgv)
         {
+                      // 使用SQLiteCommand创建一个新的命令对象
             using (var command = new SQLiteCommand())
             {
+                // 设置命令所在的连接对象
                 command.Connection = connection;
+                // 设置命令文本
                 command.CommandText = sqlcommand;
 
+                // 使用ExecuteReader方法执行命令，并创建一个数据读取器
                 using (var reader = command.ExecuteReader())
                 {
+                    // 创建一个名为"files"的数据集
                     var dataset = new DataSet("files");
+                    // 创建一个名为"files"的数据表
                     var table = new DataTable("files");
+                    // 向数据表中添加列：md5、amfile、bmfile、length
                     table.Columns.Add("md5", typeof(string));
                     table.Columns.Add("amfile", typeof(string));
                     table.Columns.Add("bmfile", typeof(string));
                     table.Columns.Add("length", typeof(Int64));
+                    // 将数据表添加到数据集中
                     dataset.Tables.Add(table);
 
+                    // 循环读取数据源中的每一行
                     while (reader.Read())
                     {
+                        // 创建一个新的数据行
                         var row = table.NewRow();
+                        // 将读取到的数据填充到数据行中
                         row["md5"] = reader.GetString(0);
                         row["amfile"] = reader.GetString(1);
                         row["bmfile"] = reader.GetString(2);
                         row["length"] = reader.GetInt64(3);
+                        // 将填充好的数据行添加到数据表中
                         table.Rows.Add(row);
                     }
 
+                    // 批准数据集中的所有更改
                     dataset.AcceptChanges();
 
+                    // 将数据表设置为dgv的DataSource
                     dgv.DataSource = dataset.Tables[0];
                 }
             }
@@ -128,11 +164,14 @@ namespace FindDup4Disk
         private void button1_Click(object sender, EventArgs e)
         {
 
-            // Set cursor as hourglass
+
+            // 设置当前光标为等待光标
             Cursor.Current = Cursors.WaitCursor;
+            // 调用 DeleteDir 方法删除指定目录
             DeleteDir(compareAMc, compareADir, compareBMc, compareBDir);
-            // Set cursor as default arrow
+            // 将光标设置为默认箭头光标
             Cursor.Current = Cursors.Default;
+
         }
 
         private void DeleteDir(string deleteMc, string deleteDir, string otherMc, string otherDir)
