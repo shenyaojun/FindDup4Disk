@@ -35,22 +35,22 @@
             // richTextBox1
             // 
             richTextBox1.ForeColor = SystemColors.MenuHighlight;
-            richTextBox1.Location = new Point(45, 25);
-            richTextBox1.Margin = new Padding(2, 3, 2, 3);
+            richTextBox1.Location = new Point(58, 29);
+            richTextBox1.Margin = new Padding(3, 4, 3, 4);
             richTextBox1.Name = "richTextBox1";
-            richTextBox1.Size = new Size(521, 348);
+            richTextBox1.Size = new Size(669, 409);
             richTextBox1.TabIndex = 0;
             richTextBox1.Text = resources.GetString("richTextBox1.Text");
             // 
-            // Form4
+            // FormTips
             // 
-            AutoScaleDimensions = new SizeF(7F, 17F);
+            AutoScaleDimensions = new SizeF(9F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(622, 382);
+            ClientSize = new Size(800, 449);
             Controls.Add(richTextBox1);
             Icon = (Icon)resources.GetObject("$this.Icon");
-            Margin = new Padding(2, 3, 2, 3);
-            Name = "Form4";
+            Margin = new Padding(3, 4, 3, 4);
+            Name = "FormTips";
             Text = "去扫描另一台新机器";
             ResumeLayout(false);
         }

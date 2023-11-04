@@ -128,7 +128,11 @@
 
 5. 若想在本机上做跨机器的文件比较，请先确保将新机器上最新的C:\daba.db文件拷贝回本机；
 
-6. 多台机器比较时，请总确保所操作机器上的C:\daba.db文件是最新的。</value>
+6. 多台机器比较时，请总确保所操作机器上的C:\daba.db文件是最新的。
+
+7. 若觉得来回拷贝文件麻烦，也可以用旁边的“上传云端”和“下载云端”按钮来同步。在原机器上点“上传云端”，然后在新机器上点“下载云端”就可以完成文件同步。
+
+8. 云端文件同步采用七牛云服务，不一定总是可用。</value>
   </data>
   <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
   <data name="$this.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">

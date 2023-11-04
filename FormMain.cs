@@ -15,6 +15,11 @@ using System.Data;
 using System.Numerics;
 using FindDup4Disk;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using Qiniu.Util;
+using Qiniu.Storage;
+using System.Net.Sockets;
+using Qiniu.Http;
+using System.Runtime.CompilerServices;
 
 namespace WinFormsApp1
 {
@@ -28,6 +33,10 @@ namespace WinFormsApp1
         const string connectionString = "Data Source=:memory:;Version=3;";
         static SQLiteConnection connection = new SQLiteConnection(connectionString);
         Dictionary<string, long> driveUsedSpace = new Dictionary<string, long> { };
+
+        string AccessKey = "XXXX";
+        string SecretKey = "xxxx";
+        string Bucket = "dabasyj";
         //private byte[] formIconBytes;
 
         public FormMain()
@@ -209,34 +218,7 @@ namespace WinFormsApp1
 
                 connection.Open();
                 Db2Mem();
-
-
-                string sql = "SELECT * FROM machines where MachineCode = '" + md5LocalMachine[4] + "'"; // 选择你的表中的第一条记录  
-                bool machineCodeExits = true;
-                using (SQLiteCommand command = new SQLiteCommand(sql, connection))
-                {
-                    using (SQLiteDataReader reader = command.ExecuteReader())
-                    {
-                        if (reader.HasRows)
-                        {
-                            while (reader.Read())
-                            {
-                                // 读取记录，这里假设你的表有字段A和字段B  
-                                machineCode = reader.GetString(5); // 根据你的字段在表中的位置更换这里的索引  
-                                //MessageBox.Show("machine code exits:" + machineCode, "处理", MessageBoxButtons.YesNo);
-                            }
-                        }
-                        else
-                        {
-                            machineCodeExits = false;
-                        }
-                    }
-                }
-                if (!machineCodeExits)
-                {
-                    StoreMachineCode2Db();
-
-                }
+                CheckMachineCodeExists();
 
                 ShowMachineList();
 
@@ -287,13 +269,43 @@ namespace WinFormsApp1
 
         }
 
+        private void CheckMachineCodeExists()
+        {
+            string sql = "SELECT * FROM machines where MachineCode = '" + md5LocalMachine[4] + "'"; // 选择你的表中的第一条记录  
+            bool machineCodeExits = true;
+            using (SQLiteCommand command = new SQLiteCommand(sql, connection))
+            {
+                using (SQLiteDataReader reader = command.ExecuteReader())
+                {
+                    if (reader.HasRows)
+                    {
+                        while (reader.Read())
+                        {
+                            // 读取记录，这里假设你的表有字段A和字段B  
+                            machineCode = reader.GetString(5); // 根据你的字段在表中的位置更换这里的索引  
+                                                               //MessageBox.Show("machine code exits:" + machineCode, "处理", MessageBoxButtons.YesNo);
+                        }
+                    }
+                    else
+                    {
+                        machineCodeExits = false;
+                    }
+                }
+            }
+            if (!machineCodeExits)
+            {
+                StoreMachineCode2Db();
+
+            }
+        }
+
         private void MergeMachineCode(string similarMachineCode)
         {
-            string sqlMerge = "update files set machine = '"+machineCode.Substring(0,2)+"' where  machine = '" + similarMachineCode.Substring(0,2) + "'";
+            string sqlMerge = "update files set machine = '" + machineCode.Substring(0, 2) + "' where  machine = '" + similarMachineCode.Substring(0, 2) + "'";
             SQLiteCommand command = new SQLiteCommand(sqlMerge, connection);
             command.ExecuteNonQuery();
 
-            sqlMerge = "delete from machines where MachineCode = '"+ similarMachineCode + "'";
+            sqlMerge = "delete from machines where MachineCode = '" + similarMachineCode + "'";
             command = new SQLiteCommand(sqlMerge, connection);
             command.ExecuteNonQuery();
 
@@ -818,7 +830,7 @@ namespace WinFormsApp1
                 DirectoryInfo folder = new DirectoryInfo("E:\\CaoCao");
 
 
-                foreach (FileInfo file in folder.GetFiles("*.*", SearchOption.AllDirectories))
+                foreach (System.IO.FileInfo file in folder.GetFiles("*.*", SearchOption.AllDirectories))
                 {
 
                     // 处理每个文件
@@ -1019,7 +1031,7 @@ namespace WinFormsApp1
             long size = 0;
             DirectoryInfo dir = new DirectoryInfo(path);
 
-            foreach (FileInfo file in dir.GetFiles())
+            foreach (System.IO.FileInfo file in dir.GetFiles())
             {
                 size += file.Length;
             }
@@ -1032,5 +1044,68 @@ namespace WinFormsApp1
             return size;
         }
 
+        private void button3_Click_1(object sender, EventArgs e)
+        {
+
+            Mac mac = new Mac(AccessKey, SecretKey);
+            //自定义凭证有效期（示例2小时，expires单位为秒，为上传凭证的有效时间）
+            PutPolicy putPolicy = new PutPolicy();
+            string filePath = dbfilename;
+            string key = "daba.db";
+
+            if (!File.Exists(filePath))
+            {
+                MessageBox.Show($"{dbfilename}不存在！", "文件不存在", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            if (MessageBox.Show($"{dbfilename}将覆盖云端文件，确认这是最新文件并覆盖云端吗？", "重要提醒", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) != DialogResult.OK)
+            {
+                return;
+            }
+
+            putPolicy.Scope = Bucket + ":" + key;
+            putPolicy.SetExpires(3600);
+
+            putPolicy.DeleteAfterDays = 10;
+            string token = Auth.CreateUploadToken(mac, putPolicy.ToJsonString());
+            Config config = new Config();
+            config.Zone = Zone.ZONE_CN_North;
+            config.UseHttps = true;
+            config.UseCdnDomains = true;
+            config.ChunkSize = ChunkUnit.U512K;
+            FormUploader target = new FormUploader(config);
+            HttpResult result = target.UploadFile(filePath, key, token, null);
+            //MessageBox.Show("form upload result: " + result.ToString());
+            if (result.Code == (int)HttpCode.OK)
+            {
+                MessageBox.Show("云端上传成功！");
+            }
+
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+
+            if (MessageBox.Show($"将从云端下载文件并覆盖本地{dbfilename}，确认操作吗？", "重要提醒", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) != DialogResult.OK)
+            {
+                return;
+            }
+            Mac mac = new Mac(AccessKey, SecretKey);
+            string domain = "http://s3ladakyt.hb-bkt.clouddn.com";
+            string key = "daba.db";
+            string privateUrl = DownloadManager.CreatePrivateUrl(mac, domain, key, 3600);
+            HttpResult result = DownloadManager.Download(privateUrl, dbfilename);
+            //MessageBox.Show("form download result: " + result.ToString());
+            if (result.Code == (int)HttpCode.OK)
+            {
+                Db2Mem();
+                CheckMachineCodeExists();
+
+                ShowMachineList();
+
+                ShowFileListRecords("SELECT * FROM files order by length desc");
+                MessageBox.Show("下载成功！");
+            }
+        }
     }
 }

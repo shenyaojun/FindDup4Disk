@@ -39,6 +39,8 @@
             dataGridView1 = new DataGridView();
             dataGridView2 = new DataGridView();
             button2 = new Button();
+            button3 = new Button();
+            button4 = new Button();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dataGridView2).BeginInit();
             SuspendLayout();
@@ -48,7 +50,7 @@
             button1.BackColor = SystemColors.GradientActiveCaption;
             button1.Location = new Point(217, 50);
             button1.Name = "button1";
-            button1.Size = new Size(302, 43);
+            button1.Size = new Size(245, 43);
             button1.TabIndex = 0;
             button1.Text = "MD5单磁盘扫描";
             button1.UseVisualStyleBackColor = false;
@@ -82,9 +84,9 @@
             // button5
             // 
             button5.BackColor = SystemColors.GradientActiveCaption;
-            button5.Location = new Point(563, 50);
+            button5.Location = new Point(482, 50);
             button5.Name = "button5";
-            button5.Size = new Size(369, 44);
+            button5.Size = new Size(309, 44);
             button5.TabIndex = 7;
             button5.Text = "单磁盘重复排查";
             button5.UseVisualStyleBackColor = false;
@@ -136,13 +138,35 @@
             // 
             button2.BackColor = SystemColors.GradientActiveCaption;
             button2.ForeColor = Color.MediumVioletRed;
-            button2.Location = new Point(976, 49);
+            button2.Location = new Point(813, 49);
             button2.Name = "button2";
-            button2.Size = new Size(369, 44);
+            button2.Size = new Size(326, 44);
             button2.TabIndex = 12;
             button2.Text = "去扫描另一台新机器";
             button2.UseVisualStyleBackColor = false;
             button2.Click += button2_Click;
+            // 
+            // button3
+            // 
+            button3.ForeColor = Color.MediumVioletRed;
+            button3.Location = new Point(1153, 57);
+            button3.Name = "button3";
+            button3.Size = new Size(94, 29);
+            button3.TabIndex = 13;
+            button3.Text = "上传云端";
+            button3.UseVisualStyleBackColor = true;
+            button3.Click += button3_Click_1;
+            // 
+            // button4
+            // 
+            button4.ForeColor = Color.MediumVioletRed;
+            button4.Location = new Point(1262, 58);
+            button4.Name = "button4";
+            button4.Size = new Size(94, 29);
+            button4.TabIndex = 14;
+            button4.Text = "下载云端";
+            button4.UseVisualStyleBackColor = true;
+            button4.Click += button4_Click;
             // 
             // FormMain
             // 
@@ -150,6 +174,8 @@
             AutoScaleMode = AutoScaleMode.Font;
             AutoValidate = AutoValidate.EnablePreventFocusChange;
             ClientSize = new Size(1415, 698);
+            Controls.Add(button4);
+            Controls.Add(button3);
             Controls.Add(button2);
             Controls.Add(dataGridView1);
             Controls.Add(treeView1);
@@ -184,5 +210,7 @@
         private DataGridView dataGridView1;
         private DataGridView dataGridView2;
         private Button button2;
+        private Button button3;
+        private Button button4;
     }
 }
