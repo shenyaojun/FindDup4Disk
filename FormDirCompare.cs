@@ -15,7 +15,6 @@ namespace FindDup4Disk
     public partial class FormDirCompare : Form
     {
         SQLiteConnection connection;
-        bool isRunning = false;
         string machineCode;
         string compareA;
         string compareB;
@@ -76,9 +75,13 @@ namespace FindDup4Disk
             dataGridView3.ReadOnly = true;
 
             // 设置dataGridView1、dataGridView2和dataGridView3的列自动调整为填充整个列
-            dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
-            dataGridView2.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
-            dataGridView3.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
+            dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
+            dataGridView2.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
+            dataGridView3.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
+
+            dataGridView1.ScrollBars = ScrollBars.Both; // 始终显示水平和垂直滚动条
+            dataGridView2.ScrollBars = ScrollBars.Both; // 始终显示水平和垂直滚动条
+            dataGridView3.ScrollBars = ScrollBars.Both; // 始终显示水平和垂直滚动条
 
             // 刷新显示
             RefreshGridShow();
@@ -115,7 +118,7 @@ namespace FindDup4Disk
 
         private void ShowFileListRecords(string sqlcommand, DataGridView dgv)
         {
-                      // 使用SQLiteCommand创建一个新的命令对象
+            // 使用SQLiteCommand创建一个新的命令对象
             using (var command = new SQLiteCommand())
             {
                 // 设置命令所在的连接对象
@@ -183,7 +186,7 @@ namespace FindDup4Disk
                 deleteAll = true;
             }
 
-            if (deleteAll && deleteDir.Length < 4) 
+            if (deleteAll && deleteDir.Length < 4)
             {
                 MessageBox.Show("无法删除整个磁盘！", "重要提醒", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;

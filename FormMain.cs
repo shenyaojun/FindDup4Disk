@@ -922,7 +922,7 @@ namespace WinFormsApp1
             {
                 //MessageBox.Show("选择的磁盘：：" + selectedNode.Text, "请选择要操作的磁盘", MessageBoxButtons.OK);
             }
-            MessageBox.Show("磁盘查重需要一定时间，请耐心等待！", "提醒", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            //MessageBox.Show("磁盘查重需要一定时间，请耐心等待！", "提醒", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             // 创建新实例  
             FormDup form2 = new FormDup(connection, machineCode, selectedNode.Text);
 
