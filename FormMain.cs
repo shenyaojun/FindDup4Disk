@@ -1063,6 +1063,11 @@ namespace WinFormsApp1
                 return;
             }
 
+
+            // 设置当前光标为等待光标
+            Cursor.Current = Cursors.WaitCursor;
+
+
             putPolicy.Scope = Bucket + ":" + key;
             putPolicy.SetExpires(3600);
 
@@ -1080,6 +1085,14 @@ namespace WinFormsApp1
             {
                 MessageBox.Show("云端上传成功！");
             }
+            else
+            {
+                MessageBox.Show("云端上传失败！");
+            }
+
+
+            // 将光标设置为默认箭头光标
+            Cursor.Current = Cursors.Default;
 
         }
 
@@ -1090,6 +1103,11 @@ namespace WinFormsApp1
             {
                 return;
             }
+
+            // 设置当前光标为等待光标
+            Cursor.Current = Cursors.WaitCursor;
+
+
             Mac mac = new Mac(AccessKey, SecretKey);
             string domain = "http://s3ladakyt.hb-bkt.clouddn.com";
             string key = "daba.db";
@@ -1106,6 +1124,13 @@ namespace WinFormsApp1
                 ShowFileListRecords("SELECT * FROM files order by length desc");
                 MessageBox.Show("下载成功！");
             }
+            else
+            {
+                MessageBox.Show("下载失败！");
+            }
+
+            // 将光标设置为默认箭头光标
+            Cursor.Current = Cursors.Default;
         }
     }
 }
