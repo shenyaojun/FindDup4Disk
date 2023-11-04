@@ -1,25 +1,15 @@
 using CsvHelper;
-using Microsoft.VisualBasic;
-using System.ComponentModel;
+using FindDup4Disk;
+using Qiniu.Http;
+using Qiniu.Storage;
+using Qiniu.Util;
+using System.Data;
 using System.Data.SQLite;
 using System.Diagnostics;
 using System.Dynamic;
 using System.Globalization;
-using System.IO;
-using System.Security.Cryptography;
-using System.Windows.Forms;
 using System.Management;
-using static System.ComponentModel.Design.ObjectSelectorEditor;
-using System.Text;
-using System.Data;
-using System.Numerics;
-using FindDup4Disk;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
-using Qiniu.Util;
-using Qiniu.Storage;
-using System.Net.Sockets;
-using Qiniu.Http;
-using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 
 namespace WinFormsApp1
 {

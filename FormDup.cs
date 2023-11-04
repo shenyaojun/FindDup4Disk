@@ -1,21 +1,8 @@
 ﻿using CsvHelper;
-using StackExchange.Redis;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Data.SQLite;
-using System.Drawing;
 using System.Dynamic;
 using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Reflection.PortableExecutable;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using static System.ComponentModel.Design.ObjectSelectorEditor;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace FindDup4Disk
 {
@@ -353,14 +340,14 @@ namespace FindDup4Disk
                     MessageBox.Show("文件删除失败！请手工操作！", "重要提醒", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
-                
+
                 //数据库删除
-                string sql = "delete from files where Filename = '"+ fileName + "' and machine = '"+ machineCode.Substring(0,2)+"'";
+                string sql = "delete from files where Filename = '" + fileName + "' and machine = '" + machineCode.Substring(0, 2) + "'";
                 SQLiteCommand command = new SQLiteCommand(sql, connection);
                 command.ExecuteNonQuery();
                 MessageBox.Show("文件已成功删除！", "重要提醒", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 
-                
+
                 string md5 = selectedRow.Cells["MD5"].Value.ToString();
                 //MessageBox.Show("选择的磁盘：：" + mc, "请选择要操作的磁盘", MessageBoxButtons.OK);
 

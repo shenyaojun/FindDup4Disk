@@ -1,17 +1,7 @@
 ﻿using CsvHelper;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Data.SQLite;
-using System.Drawing;
 using System.Dynamic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using static System.ComponentModel.Design.ObjectSelectorEditor;
 using WinFormsApp1;
 
 namespace FindDup4Disk
@@ -133,7 +123,8 @@ namespace FindDup4Disk
                             // 更新ProgressBar的值  
                             int progressValueNew = (int)(scannedSpace / (double)usedSpace * 100);
                             progressValueNew = progressValueNew * 3;
-                            if (progressValueNew > progressValue && progressValueNew < 70) {
+                            if (progressValueNew > progressValue && progressValueNew < 70)
+                            {
                                 progressValue = progressValueNew;
                             }
                             else
@@ -222,7 +213,7 @@ namespace FindDup4Disk
 
                             command.ExecuteNonQuery();
 
-                            
+
 
                             i++;
                         }
