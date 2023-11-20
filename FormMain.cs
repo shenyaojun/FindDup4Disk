@@ -1,5 +1,6 @@
 using CsvHelper;
 using FindDup4Disk;
+using Microsoft.Web.WebView2.Core;
 using Qiniu.Http;
 using Qiniu.Storage;
 using Qiniu.Util;
@@ -9,10 +10,12 @@ using System.Diagnostics;
 using System.Dynamic;
 using System.Globalization;
 using System.Management;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 
 namespace WinFormsApp1
 {
+
     public partial class FormMain : Form
     {
         private bool userSendEndCommand;
@@ -32,6 +35,7 @@ namespace WinFormsApp1
         public FormMain()
         {
             InitializeComponent();
+            InitializeAsync();
             /*
             string filePath = "app48.ico"; // 替换为你的.ico文件路径  
 
@@ -47,10 +51,13 @@ namespace WinFormsApp1
             */
         }
 
+        async void InitializeAsync()
+        {
+            await webView21.EnsureCoreWebView2Async(null);
+        }
 
 
-
-        private void button1_Click(object sender, EventArgs e)
+        public void button1_Click(object sender, EventArgs e)
         {
             // 获取当前选中节点  
             TreeNode selectedNode = treeView1.SelectedNode;
@@ -479,7 +486,7 @@ namespace WinFormsApp1
         }
 
 
-        private void button3_Click(object sender, EventArgs e)
+        public void button3_Click(object sender, EventArgs e)
         {
             userSendEndCommand = true;
             dataGridView2.Visible = false;
@@ -911,7 +918,7 @@ namespace WinFormsApp1
             return resule;
         }
 
-        private void button5_Click(object sender, EventArgs e)
+        public void button5_Click(object sender, EventArgs e)
         {
             // 获取当前选中节点  
             TreeNode selectedNode = treeView1.SelectedNode;
@@ -1006,7 +1013,7 @@ namespace WinFormsApp1
             }
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        public void button2_Click(object sender, EventArgs e)
         {
             // 创建新实例  
             FormTips form4 = new FormTips();
@@ -1122,5 +1129,27 @@ namespace WinFormsApp1
             // 将光标设置为默认箭头光标
             Cursor.Current = Cursors.Default;
         }
+
+        private void webView21_CoreWebView2InitializationCompleted(object sender, Microsoft.Web.WebView2.Core.CoreWebView2InitializationCompletedEventArgs e)
+        {
+            if ((webView21 == null) || (webView21.CoreWebView2 == null))
+                Console.WriteLine("not ready");
+            //webView21.NavigateToString(File.ReadAllText("index.html"));
+            else
+            {
+                webView21.CoreWebView2.AddHostObjectToScript("webBrowserObj", new ScriptCallbackObject());
+
+                //虚拟映射
+                webView21.CoreWebView2.SetVirtualHostNameToFolderMapping("html.sam", "./dist", CoreWebView2HostResourceAccessKind.Allow);
+                //导航
+                webView21.CoreWebView2.Navigate("https://html.sam/index.html");
+                webView21.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync("var webBrowserObj= window.chrome.webview.hostObjects.webBrowserObj;");
+
+                //MessageBox.Show("done");
+            }
+
+            //webView21.NavigateToString(File.ReadAllText("index.html"));
+        }
+
     }
 }

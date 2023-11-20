@@ -41,8 +41,10 @@
             button2 = new Button();
             button3 = new Button();
             button4 = new Button();
+            webView21 = new Microsoft.Web.WebView2.WinForms.WebView2();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dataGridView2).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)webView21).BeginInit();
             SuspendLayout();
             // 
             // button1
@@ -75,7 +77,7 @@
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(104, 630);
+            label1.Location = new Point(104, 718);
             label1.Name = "label1";
             label1.Size = new Size(53, 20);
             label1.TabIndex = 4;
@@ -95,7 +97,7 @@
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(104, 664);
+            label2.Location = new Point(104, 752);
             label2.Name = "label2";
             label2.Size = new Size(53, 20);
             label2.TabIndex = 8;
@@ -103,7 +105,7 @@
             // 
             // treeView1
             // 
-            treeView1.Location = new Point(1141, 121);
+            treeView1.Location = new Point(1141, 209);
             treeView1.Name = "treeView1";
             treeView1.Size = new Size(238, 461);
             treeView1.TabIndex = 9;
@@ -114,7 +116,7 @@
             // 
             dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
             dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridView1.Location = new Point(90, 107);
+            dataGridView1.Location = new Point(90, 163);
             dataGridView1.Name = "dataGridView1";
             dataGridView1.RowHeadersWidth = 51;
             dataGridView1.RowTemplate.Height = 29;
@@ -127,18 +129,18 @@
             // 
             dataGridView2.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
             dataGridView2.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridView2.Location = new Point(90, 280);
+            dataGridView2.Location = new Point(90, 335);
             dataGridView2.Name = "dataGridView2";
             dataGridView2.RowHeadersWidth = 51;
             dataGridView2.RowTemplate.Height = 29;
-            dataGridView2.Size = new Size(1032, 316);
+            dataGridView2.Size = new Size(1032, 349);
             dataGridView2.TabIndex = 11;
             // 
             // button2
             // 
             button2.BackColor = SystemColors.GradientActiveCaption;
             button2.ForeColor = Color.MediumVioletRed;
-            button2.Location = new Point(813, 49);
+            button2.Location = new Point(778, 70);
             button2.Name = "button2";
             button2.Size = new Size(326, 44);
             button2.TabIndex = 12;
@@ -168,12 +170,27 @@
             button4.UseVisualStyleBackColor = true;
             button4.Click += button4_Click;
             // 
+            // webView21
+            // 
+            webView21.AllowExternalDrop = true;
+            webView21.BackColor = SystemColors.ControlLight;
+            webView21.CreationProperties = null;
+            webView21.DefaultBackgroundColor = Color.Transparent;
+            webView21.Location = new Point(90, 13);
+            webView21.Name = "webView21";
+            webView21.Size = new Size(1032, 150);
+            webView21.TabIndex = 15;
+            webView21.ZoomFactor = 1D;
+            webView21.CoreWebView2InitializationCompleted += webView21_CoreWebView2InitializationCompleted;
+            // 
             // FormMain
             // 
             AutoScaleDimensions = new SizeF(9F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             AutoValidate = AutoValidate.EnablePreventFocusChange;
-            ClientSize = new Size(1415, 698);
+            BackColor = SystemColors.ControlLight;
+            ClientSize = new Size(1415, 795);
+            Controls.Add(webView21);
             Controls.Add(button4);
             Controls.Add(button3);
             Controls.Add(button2);
@@ -194,6 +211,7 @@
             Load += Form1_Load;
             ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
             ((System.ComponentModel.ISupportInitialize)dataGridView2).EndInit();
+            ((System.ComponentModel.ISupportInitialize)webView21).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -212,5 +230,6 @@
         private Button button2;
         private Button button3;
         private Button button4;
+        private Microsoft.Web.WebView2.WinForms.WebView2 webView21;
     }
 }

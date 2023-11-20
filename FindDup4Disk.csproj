@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <PackageReference Include="CsvHelper" Version="30.0.1" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2151.40" />
     <PackageReference Include="Qiniu" Version="8.4.0" />
     <PackageReference Include="StackExchange.Redis" Version="2.6.122" />
     <PackageReference Include="System.Data.SQLite" Version="1.0.118" />
@@ -42,7 +43,25 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="assets\index-VJm_J0Ol.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="assets\index-YrmSWbNV.css">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="daba.db">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="dist\assets\index-qNXQ2HLV.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="dist\assets\index-Sn0kb2E-.css">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="dist\index.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="index.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
