@@ -105,7 +105,7 @@
             // 
             // treeView1
             // 
-            treeView1.Location = new Point(1141, 209);
+            treeView1.Location = new Point(1141, 148);
             treeView1.Name = "treeView1";
             treeView1.Size = new Size(238, 461);
             treeView1.TabIndex = 9;
@@ -116,7 +116,7 @@
             // 
             dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
             dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridView1.Location = new Point(90, 163);
+            dataGridView1.Location = new Point(90, 113);
             dataGridView1.Name = "dataGridView1";
             dataGridView1.RowHeadersWidth = 51;
             dataGridView1.RowTemplate.Height = 29;
@@ -129,11 +129,11 @@
             // 
             dataGridView2.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
             dataGridView2.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridView2.Location = new Point(90, 335);
+            dataGridView2.Location = new Point(90, 280);
             dataGridView2.Name = "dataGridView2";
             dataGridView2.RowHeadersWidth = 51;
             dataGridView2.RowTemplate.Height = 29;
-            dataGridView2.Size = new Size(1032, 349);
+            dataGridView2.Size = new Size(1032, 404);
             dataGridView2.TabIndex = 11;
             // 
             // button2
@@ -178,7 +178,7 @@
             webView21.DefaultBackgroundColor = Color.Transparent;
             webView21.Location = new Point(90, 13);
             webView21.Name = "webView21";
-            webView21.Size = new Size(1032, 150);
+            webView21.Size = new Size(1032, 101);
             webView21.TabIndex = 15;
             webView21.ZoomFactor = 1D;
             webView21.CoreWebView2InitializationCompleted += webView21_CoreWebView2InitializationCompleted;
